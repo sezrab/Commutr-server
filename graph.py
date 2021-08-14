@@ -4,58 +4,111 @@ class graph(object):
     def __init__(self,nodes):
         self.nodes = nodes
 
-    def edgeCost(self, fromNode, toNode): # generate a cost as  if there is an edge there.
-        return (self.nodeCost(fromNode)+self.nodeCost(toNode))/2
+    def edgeCost(self, fromNode, toNode): # generate a cost as if there is an edge there.
+        return toNode.distanceFrom(fromNode) #* ((self.nodeCost(fromNode)+self.nodeCost(toNode))/2)
 
     def nodeCost(self,aNode):
-        return constants.cyclingWayCostMap[aNode.wayType]
+        return constants.cyclingWayCostMap[aNode.getWayType()]
 
-    def getNodeNeighbors(self, fromNode):
-        edges = []
-        for aNode in self.nodes:
-            if aNode.distanceFrom(fromNode) <= 1:
-                edges.append(routeNode(aNode))
-        return edges
+    def getNodeNeighbors(self, fromNode, exclusions = []):
+        # get the four closest nodes
+        # nodes = []
+        # for aNode in self.nodes:
+        #     if aNode.distanceFrom(fromNode) <= 10:
+        #         if aNode.getPos() != fromNode.getPos():
+        #             nodes.append(astarNode.fromNode(aNode))
+        # return nodes
+        nodesList = self.nodes
+        closestNodes = []
+
+        for i in range(4):
+            closest, index = self.getClosestTo(fromNode,nodesList, exclusions)
+            nodesList = nodesList[:index]+nodesList[index+1:]
+            closestNodes.append(astarNode.fromNode(closest))
+
+        return closestNodes
+
+    def getClosestTo(self, aNode, nodesList=None, exclusions=[]):
+        if nodesList is None:
+            nodesList = self.nodes
+
+        closestNode = None
+        closestDistance = None
+        closestIndex = None
+        for i in range(len(nodesList)):
+            nd = nodesList[i]
+            if nd.isAt(aNode) or nd.getPos() in exclusions:
+                continue
+            d = utils.haversine(aNode.getPos(), nd.getPos())
+            if closestNode is None or d < closestDistance:
+                closestDistance = d
+                closestIndex = i
+                closestNode = nd
+
+        return closestNode, closestIndex
 
 class node(object):
     def __init__(self,pos,wayType,wayID):
-        self.pos = pos
-        self.wayType = wayType
-        self.wayID = wayID
+        self.__pos = pos
+        self.__wayType = wayType
+        self.__wayID = wayID
+
+    def getInfo(self):
+        return self.__pos, self.__wayType, self.__wayID
+
+    def getPos(self):
+        return self.__pos
+
+    def isAt(self,aNode):
+        return self.getPos() == aNode.getPos()
+
+    def getWayType(self):
+        return self.__wayType
+
+    def getWayID(self):
+            return self.__wayID
 
     def toJson(self):
-        return {'pos':self.pos, 'wayID':self.wayID}
+        return {'pos':self.__pos, 'wayType':self.__wayType, 'wayID':self.__wayID}
 
     def distanceFrom(self,other):
-        return utils.haversine(self.pos,other.pos)
+        return utils.haversine(self.__pos,other.getPos())
 
     @staticmethod
     def fromJson(data):
-        return node(data['pos'],data['wayID'])
+        return node(data['pos'], data['wayType'], data['wayID'])
     
     def __str__(self):
-        return str(self.pos)
+        return str(self.__pos)
 
-class edge(object):
-    def __init__(self, fromNode, toNode, cost):
-        self.fromNode = fromNode
-        self.toNode = toNode
-        self.cost = cost
+class astarNode(node):
+    def __init__(self,pos,wayType,wayID):
+        super().__init__(pos,wayType,wayID)
+        self.__g = None
+        self.__h = None
+        self.__f = None
+        self.__fromNode = None
 
-class routeNode(object):
-    def __init__(self, aNode, predecessor = None, g=0, h=0, f=0):
-        self.h = h
-        self.g = g
-        self.f = f
-        self.__visited = False
-        self.predecessor = predecessor
-        self.__node = aNode
+    def getFromNode(self):
+        return self.__fromNode
+
+
+    def setCost(self, g, h, fromNode):
+        self.__g = g
+        self.__h = h
+        self.__f = g+h
+        self.__fromNode = fromNode
     
-    def visit(self):
-        self.__visited = True
-    
-    def visited(self):
-        return self.__visited
+    def g(self):
+        return self.__g
 
-    def node(self):
-        return self.__node
+    def f(self):
+        return self.__f
+    
+    def h(self):
+        return self.__h
+
+    @staticmethod
+    def fromNode(aNode):
+        pos,wayType,wayID = aNode.getInfo()
+        return astarNode(pos,wayType,wayID)

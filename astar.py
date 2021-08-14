@@ -1,51 +1,64 @@
 from utils import *
 from graph import *
 
-def aStarSearch(graph, startNode, endNode):
-
-    startNode = routeNode(startNode)
-    endNode = routeNode(endNode)
-
-    openSet = PriorityQueue()
-    openSet.enqueue(startNode)
-
-    currentNode = routeNode(startNode)
+def backtrack(graph, currNode, startNode, path = [], cumulativeG = 0, cumulativeF = 0): # recursive back track
+    path.append(currNode)
     
-    while not openSet.isEmpty():
-        # print("-")
-        currentNode = openSet.dequeue()
-        print(len(openSet.queue))
-        if currentNode == endNode:
-            return openSet.queue
+    if currNode.isAt(startNode):
+        return path, cumulativeG, cumulativeF
+    
+    fromNode = currNode.getFromNode()
+    cumulativeF += currNode.f()
+    cumulativeG += currNode.g()
 
-        currentNode.visit()
+    return backtrack(graph, fromNode, startNode, path, cumulativeG, cumulativeF)
 
-        for neighbour in graph.getNodeNeighbors(currentNode.node()):
-            # print(currentNode.g)
-            if neighbour.visited():
-                print("already visited")
+def aStarSearch(graph, startNode, endNode):
+    startNode = astarNode.fromNode(startNode)
+    endNode = astarNode.fromNode(endNode)
+
+    # enqueue start node in priority queue with p = 0
+    priorityQueue = PriorityQueue()
+    
+    startNode.setCost(0,0,startNode)
+    priorityQueue.enqueue(startNode)
+
+    visited = [] # visited is a list of positions rather than nodes.
+
+    while not priorityQueue.isEmpty():
+        # while the queue is not empty, dequeue and explore neighbors.
+        currentNode = priorityQueue.dequeue()
+        visited.append(currentNode.getPos())
+
+        # print("Current distance from end is:",haversine(currentNode.getPos(),endNode.getPos()))
+
+        if currentNode.isAt(endNode):
+            return backtrack(graph,currentNode,startNode)
+
+        currentNodeNeighbours = graph.getNodeNeighbors(currentNode,visited)
+
+        # print("This node has",len(currentNodeNeighbours),"neighbours")
+
+        for neighbour in currentNodeNeighbours:
+            
+            if neighbour.getPos() in visited:
                 continue
             
-            # F is the total cost of the node.
-            # G is the distance between the current node and the start node.
-            # H is the heuristic — estimated distance from the current node to the end node.
-
-            neighbourG = currentNode.g + ((neighbour.node().distanceFrom(currentNode.node())+1)*constants.cyclingWayCostMap[neighbour.node().wayType])
-
-            print(neighbourG)
-
-            if openSet.contains(neighbour) and neighbourG >= neighbour.g:
-                continue
+            neighbourH = haversine(neighbour.getPos(),endNode.getPos())
+            neighbourG = graph.edgeCost(currentNode,neighbour) + backtrack(graph,currentNode,startNode)[1]
+            neighbour.setCost(neighbourG,neighbourH, currentNode)
+            
+            # check if there is a path to neighbor node already
+            nodeAtPos = priorityQueue.hasNodeAtPos(neighbour)
+            if nodeAtPos is not None:
+                if neighbourG < nodeAtPos.g():
+                    # the new path is better than the existing path, so we update the new path.
+                    priorityQueue.remove(nodeAtPos)
+                else:
+                    # the existing path is better so this path should be ignored
+                    continue
                 
-            neighbour.g = neighbourG
-            h = neighbour.node().distanceFrom(endNode.node())
-            neighbour.h = h
-            f = neighbourG + h
-            neighbour.f = f
+            priorityQueue.enqueue(neighbour)
 
-            if openSet.contains(neighbour):
-                openSet.remove(neighbour) # remove so the cost can be updated
 
-            openSet.enqueue(neighbour)
-        
-    return openSet.queue
+    return None,None

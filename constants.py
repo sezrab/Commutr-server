@@ -1,6 +1,6 @@
 overpass_url = "http://overpass-api.de/api/interpreter"
 
-earthRad = 6373000
+earthRad = 6371000
 
 cyclingWayCostMap = {
     'trunk' : 10,

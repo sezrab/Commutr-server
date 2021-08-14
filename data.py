@@ -25,27 +25,20 @@ def load():
     with open('nodes.json') as json_file:
         return json.load(json_file)
 
-def plotNodes(nds,color = ''):
+def plotNodes(nds,color = '',scatter=False):
     x = []
     y = []
     for nd in nds:
-        coord = nd.node().pos
+        coord = nd.getPos()
         x.append(coord[0])
         y.append(coord[1])
-    plt.plot(x,y,color)
+    if scatter:
+        plt.scatter(x,y,5,color)
+    else:
+        plt.plot(x,y,color)
     update()
 
-def closestNode(coords,nodes):
-    closestNode = None
-    closestDistance = None
-    for aNode in nodes:
-        d = haversine(aNode.pos,coords)
-        if closestNode is None or d < closestDistance:
-            closestDistance = d
-            closestNode = aNode
-    return closestNode
-
-def processWays(ways, plot=False, color = ''):
+def processWays(ways, plot=False, scatter=False, color = 'b'):
     nodes = []
     for way in ways:
         x = []
@@ -60,7 +53,10 @@ def processWays(ways, plot=False, color = ''):
                 y.append(yp)
 
         if plot:
-            plt.plot(x,y,color)
+            if scatter:
+                plt.scatter(x, y, 0.5, color)
+            else:
+                plt.plot(x,y,color)
 
     return nodes
 
@@ -69,63 +65,21 @@ def update():
     plt.pause(0.05)
 
 if __name__ == "__main__":
-    import random
+    print("A: acquire from api")
+    print("AS: acquire and save to file")
+    print("L: load from file")
 
-    ways = load()
+    inp = input(" - ").lower()
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
+    if inp[0] == "a":   
+        ways = aquire(int(input("Radius km: ")))
 
-    nodes = processWays(ways, True, 'c')
+    elif inp == "l":
+        ways = load()
     
-    wayTypes = []
+    if inp == "as":
+        save(ways)
 
-    for node in nodes:
-        if node.wayType not in wayTypes:
-            wayTypes.append(node.wayType)
-    
-    aGraph = graph(nodes)
-
-    clickedCoords = []
-    def onclick(event):
-        global clickedCoords
-
-        print("Clicked... please wait")
-
-        ix, iy = event.xdata, event.ydata
-        clickedCoords.append(closestNode((ix, iy),nodes))
-
-        print("Okay.")
-
-        if len(clickedCoords) == 2:
-            print("Finding route...")
-            a,b = clickedCoords
-            route = list(astar.aStarSearch(aGraph,a,b)[0].keys())
-            print("Done.\nPlotting...")
-            plotNodes(route,'r')
-            print("Plotted.")
-            clickedCoords = []
-        
-
-    cid = fig.canvas.mpl_connect('button_press_event', onclick)
+    processWays(ways)
 
     plt.show()
-
-    # print("A: acquire from api")
-    # print("AS: acquire and save to file")
-    # print("L: load from file")
-
-    # inp = input(" - ").lower()
-
-    # if inp[0] == "a":   
-    #     ways = aquire(5)
-
-    # elif inp == "l":
-    #     ways = load()
-    
-    # if inp == "as":
-    #     save(ways)
-
-    # processWays(ways)
-    
-    # plt.show()
