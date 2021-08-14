@@ -1,26 +1,51 @@
 from utils import *
+from graph import *
 
 def aStarSearch(graph, startNode, endNode):
-    pq = PriorityQueue()
-    pq.insert(startNode, 0)
 
-    came_from = {}
-    cost_so_far = {}
+    startNode = routeNode(startNode)
+    endNode = routeNode(endNode)
 
+    openSet = PriorityQueue()
+    openSet.enqueue(startNode)
 
-    came_from[startNode] = None
-    cost_so_far[startNode] = 0
+    currentNode = routeNode(startNode)
     
-    current = None
-    
-    while not pq.isEmpty() and current != endNode:
-        current = pq.pop()
-        for next in graph.getNodeNeighbors(current):
-            new_cost = cost_so_far[current] + graph.edgeCost(current, next)
-            if next not in cost_so_far or new_cost < cost_so_far[next]:
-                cost_so_far[next] = new_cost
-                priority = new_cost + haversine(next.pos, endNode.pos)
-                pq.insert(next, priority)
-                came_from[next] = current
-    
-    return came_from, cost_so_far
+    while not openSet.isEmpty():
+        # print("-")
+        currentNode = openSet.dequeue()
+        print(len(openSet.queue))
+        if currentNode == endNode:
+            return openSet.queue
+
+        currentNode.visit()
+
+        for neighbour in graph.getNodeNeighbors(currentNode.node()):
+            # print(currentNode.g)
+            if neighbour.visited():
+                print("already visited")
+                continue
+            
+            # F is the total cost of the node.
+            # G is the distance between the current node and the start node.
+            # H is the heuristic — estimated distance from the current node to the end node.
+
+            neighbourG = currentNode.g + ((neighbour.node().distanceFrom(currentNode.node())+1)*constants.cyclingWayCostMap[neighbour.node().wayType])
+
+            print(neighbourG)
+
+            if openSet.contains(neighbour) and neighbourG >= neighbour.g:
+                continue
+                
+            neighbour.g = neighbourG
+            h = neighbour.node().distanceFrom(endNode.node())
+            neighbour.h = h
+            f = neighbourG + h
+            neighbour.f = f
+
+            if openSet.contains(neighbour):
+                openSet.remove(neighbour) # remove so the cost can be updated
+
+            openSet.enqueue(neighbour)
+        
+    return openSet.queue

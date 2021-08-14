@@ -5,75 +5,7 @@ from overpass import *
 from clipboard import copy
 import matplotlib.pyplot as plt
 import astar
-
-cyclingWayCostMap = {
-    'trunk' : 10,
-    'trunk_link': 10,
-    'service' : 2,
-    'tertiary': 2,
-    'tertiary_link': 2,
-    'residential': 2,
-    'unclassified': 2,
-    'pedestrian': 20,
-    'secondary': 5,
-    'secondary_link': 5,
-    'primary': 25,
-    'primary_link': 25,
-    'footway': 20,
-    'bridleway': 500,
-    'track': 500,
-    'path': 100,
-    'steps': 500,
-    'cycleway': 1,
-    'living_street': 3,
-    'raceway': 500,
-    'construction': False,
-    'road': 5,
-    'no': False,
-}
-
-
-class graph(object):
-    def __init__(self,nodes):
-        self.nodes = nodes
-
-    def edgeCost(self, fromNode, toNode): # generate a cost as  if there is an edge there.
-        return (self.nodeCost(fromNode)+self.nodeCost(toNode))/2
-
-    def nodeCost(self,aNode):
-        return cyclingWayCostMap[aNode.wayType]
-
-    def getNodeNeighbors(self, fromNode):
-        edges = []
-        for aNode in self.nodes:
-            if aNode.distanceFrom(fromNode) <= 0.01:
-                edges.append(aNode)
-        return edges
-
-class node(object):
-    def __init__(self,pos,wayType,wayID):
-        self.pos = pos
-        self.wayType = wayType
-        self.wayID = wayID
-
-    def toJson(self):
-        return {'pos':self.pos, 'wayID':self.wayID}
-
-    def distanceFrom(self,other):
-        return haversine(self.pos,other.pos)
-
-    @staticmethod
-    def fromJson(data):
-        return node(data['pos'],data['wayID'])
-    
-    def __str__(self):
-        return self.pos
-
-class edge(object):
-    def __init__(self, fromNode, toNode, cost):
-        self.fromNode = fromNode
-        self.toNode = toNode
-        self.cost = cost
+from graph import *
 
 def aquire(radius):
     print("Acquiring data...")
@@ -97,10 +29,11 @@ def plotNodes(nds,color = ''):
     x = []
     y = []
     for nd in nds:
-        coord = nd.pos
+        coord = nd.node().pos
         x.append(coord[0])
         y.append(coord[1])
     plt.plot(x,y,color)
+    update()
 
 def closestNode(coords,nodes):
     closestNode = None
@@ -131,6 +64,10 @@ def processWays(ways, plot=False, color = ''):
 
     return nodes
 
+def update():
+    plt.draw()  
+    plt.pause(0.05)
+
 if __name__ == "__main__":
     import random
 
@@ -142,7 +79,6 @@ if __name__ == "__main__":
     nodes = processWays(ways, True, 'c')
     
     wayTypes = []
-
 
     for node in nodes:
         if node.wayType not in wayTypes:
@@ -162,19 +98,18 @@ if __name__ == "__main__":
         print("Okay.")
 
         if len(clickedCoords) == 2:
-            print("Plotting...")
+            print("Finding route...")
             a,b = clickedCoords
             route = list(astar.aStarSearch(aGraph,a,b)[0].keys())
+            print("Done.\nPlotting...")
             plotNodes(route,'r')
             print("Plotted.")
-            plt.show()
-            fig.canvas.mpl_disconnect(cid)
+            clickedCoords = []
         
 
     cid = fig.canvas.mpl_connect('button_press_event', onclick)
 
     plt.show()
-
 
     # print("A: acquire from api")
     # print("AS: acquire and save to file")
