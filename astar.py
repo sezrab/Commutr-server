@@ -8,6 +8,7 @@ def backtrack(graph, currNode, startNode, path = [], cumulativeG = 0, cumulative
         return path, cumulativeG, cumulativeF
     
     fromNode = currNode.getFromNode()
+
     cumulativeF += currNode.f()
     cumulativeG += currNode.g()
 
@@ -23,7 +24,7 @@ def aStarSearch(graph, startNode, endNode):
     startNode.setCost(0,0,startNode)
     priorityQueue.enqueue(startNode)
 
-    visited = [] # visited is a list of positions rather than nodes.
+    visited = [] # visited is a list of coordinates.
 
     while not priorityQueue.isEmpty():
         # while the queue is not empty, dequeue and explore neighbors.
@@ -35,21 +36,27 @@ def aStarSearch(graph, startNode, endNode):
         if currentNode.isAt(endNode):
             return backtrack(graph,currentNode,startNode)
 
-        currentNodeNeighbours = graph.getNodeNeighbors(currentNode,visited)
+        nodeEdges = graph.getNodeEdges(currentNode)
 
         # print("This node has",len(currentNodeNeighbours),"neighbours")
 
-        for neighbour in currentNodeNeighbours:
-            
-            if neighbour.getPos() in visited:
+        for edge in nodeEdges:
+
+            toNode = edge.getToNode()
+
+            if toNode.getPos() in visited:
                 continue
             
-            neighbourH = haversine(neighbour.getPos(),endNode.getPos())
-            neighbourG = graph.edgeCost(currentNode,neighbour) + backtrack(graph,currentNode,startNode)[1]
-            neighbour.setCost(neighbourG,neighbourH, currentNode)
+            neighbourH = haversine(toNode.getPos(),endNode.getPos())
+            neighbourG =  edge.getCost() + backtrack(graph,currentNode,startNode)[1]
+
+            toNode_astar = astarNode.fromNode(toNode)
+
+            toNode_astar.setCost(neighbourG, neighbourH, currentNode)
             
             # check if there is a path to neighbor node already
-            nodeAtPos = priorityQueue.hasNodeAtPos(neighbour)
+            nodeAtPos = priorityQueue.hasNodeAtPos(toNode_astar)
+
             if nodeAtPos is not None:
                 if neighbourG < nodeAtPos.g():
                     # the new path is better than the existing path, so we update the new path.
@@ -58,7 +65,7 @@ def aStarSearch(graph, startNode, endNode):
                     # the existing path is better so this path should be ignored
                     continue
                 
-            priorityQueue.enqueue(neighbour)
+            priorityQueue.enqueue(toNode_astar)
 
 
     return None,None
