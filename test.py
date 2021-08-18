@@ -32,7 +32,8 @@ def onclick(event):
         a, b = clickedCoords
         plotNodes(clickedCoords,'r')
         print("Distance is",haversine(a.getPos(),b.getPos()))
-        route = astar.aStarSearch(aGraph,a,b)[0]
+        route = astar.aStarSearch(aGraph,a,b)
+        print(route)
         assert(route is not None)
         print("Done.\nPlotting...")
         plotNodes(route,'r')

@@ -24,7 +24,7 @@ class graph(object):
 
     def nodeIsOnJunction(self,aNode):
         for juncNode in self.__junctionNodes:
-            if juncNode.isAt(aNode.getPos()):
+            if juncNode.isAt(aNode):
                 return juncNode
         return False
 
@@ -40,7 +40,7 @@ class graph(object):
             neighbours.append(isOnJunc)
         
         for neighbour in neighbours:
-            edges.append(aNode, neighbour, edge(self.edgeCost(aNode,neighbour)))
+            edges.append(edge(aNode, neighbour, self.edgeCost(aNode,neighbour)))
         
         return edges
 
@@ -98,7 +98,7 @@ class way(object):
     def getNodeNeighboursOnWay(self, aNode):
         nNodes = len(self.__nodes)
         for i in range(len(self.__nodes)):
-            if self.__nodes[i].isAt(aNode.getPos()):
+            if self.__nodes[i].isAt(aNode):
                 break
         if i == 0:
             return [self.__nodes[i+1]]
@@ -141,35 +141,3 @@ class node(object):
 
     def __str__(self):
         return str(self.__pos)
-
-
-class astarNode(node):
-    def __init__(self, pos, wayType, wayID):
-        super().__init__(pos, wayType, wayID)
-        self.__g = None
-        self.__h = None
-        self.__f = None
-        self.__fromNode = None
-
-    def getFromNode(self):
-        return self.__fromNode
-
-    def setCost(self, g, h, fromNode):
-        self.__g = g
-        self.__h = h
-        self.__f = g+h
-        self.__fromNode = fromNode
-
-    def g(self):
-        return self.__g
-
-    def f(self):
-        return self.__f
-
-    def h(self):
-        return self.__h
-
-    @staticmethod
-    def fromNode(aNode):
-        pos, wayType, wayID = aNode.getInfo()
-        return astarNode(pos, wayType, wayID)

@@ -42,6 +42,7 @@ def plotNodes(nds,color = 'c',scatter=False):
     y = []
     for nd in nds:
         coord = nd.getPos()
+        print(coord)
         x.append(coord[0])
         y.append(coord[1])
     if scatter:
