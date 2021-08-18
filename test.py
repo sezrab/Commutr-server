@@ -7,7 +7,7 @@ ways = load()
 fig = plt.figure()
 ax = fig.add_subplot(111)
 
-nodes, junctions, ways = processWays(ways, True, False, 'c')
+nodes, junctions, ways = processWays(ways, True, False, False, 'c')
 
 print(len(nodes))
 
@@ -20,24 +20,29 @@ def onclick(event):
     """
     global clickedCoords
 
-    print("Clicked... please wait")
-
     ix, iy = event.xdata, event.ydata
     clickedCoords.append(aGraph.closestNode((ix, iy)))
 
-    print("Okay.")
+    print("Click no.",len(clickedCoords))
 
     if len(clickedCoords) == 2:
         print("Finding route...")
         a, b = clickedCoords
-        plotNodes(clickedCoords,'r')
-        print("Distance is",haversine(a.getPos(),b.getPos()))
+
+        # plotNodes(clickedCoords,'r')
+
         route = astar.aStarSearch(aGraph,a,b)
-        print(route)
+        
         assert(route is not None)
-        print("Done.\nPlotting...")
+
+        print("Route finding done.")
+
+        print("Plotting visuals...")
+
         plotNodes(route,'r')
-        print("Plotted.")
+
+        print("Done.")
+        
         clickedCoords = []
 
 cid = fig.canvas.mpl_connect('button_press_event', onclick)

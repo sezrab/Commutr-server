@@ -42,7 +42,6 @@ def plotNodes(nds,color = 'c',scatter=False):
     y = []
     for nd in nds:
         coord = nd.getPos()
-        print(coord)
         x.append(coord[0])
         y.append(coord[1])
     if scatter:
@@ -51,7 +50,7 @@ def plotNodes(nds,color = 'c',scatter=False):
         plt.plot(x,y,color)
     update()
 
-def processWays(wayData, plot=False, scatter=False, color = 'c'):
+def processWays(wayData, plot=False, scatter=False, junctions=False, color = 'c'):
     """
     Processes the raw OSM data for pathfinding & visualisation. Returns two lists of nodes.
     """
@@ -76,7 +75,8 @@ def processWays(wayData, plot=False, scatter=False, color = 'c'):
 
             if i == numNodes-1 or i == 0: # append the first and last nodes of a way to the junctions list
                 junctionNodes.append(newNode)
-                plt.scatter(lon, lat, c='r')
+                if junctions:
+                    plt.scatter(lon, lat, c='r')
 
             wayNodes.append(newNode)
 

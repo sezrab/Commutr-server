@@ -20,13 +20,18 @@ class graph(object):
         For example, travelling over a main road will have a very high cost for cyclists since it is an unpleasant way to travel, and a cycleway will have a low cost.
         TODO: Specify type of travel
         """
-        return constants.cyclingWayCostMap[aNode.getWayType()]
+        try:
+            return constants.cyclingWayCostMap[aNode.getWayType()]
+        except:
+            print("!!!!!!!!!! THERE WAS AN UNKNOWN ROUTE")
+            return 50
 
     def nodeIsOnJunction(self,aNode):
+        juncNodes = []
         for juncNode in self.__junctionNodes:
             if juncNode.isAt(aNode):
-                return juncNode
-        return False
+                juncNodes.append(juncNode)
+        return juncNodes
 
     def getNodeEdges(self,aNode):
         edges = []
@@ -36,8 +41,9 @@ class graph(object):
 
         thisWay = self.__ways[wayID]
         neighbours += thisWay.getNodeNeighboursOnWay(aNode)
-        if isOnJunc:
-            neighbours.append(isOnJunc)
+
+        if len(isOnJunc) > 0:
+            neighbours += isOnJunc
         
         for neighbour in neighbours:
             edges.append(edge(aNode, neighbour, self.edgeCost(aNode,neighbour)))
@@ -128,6 +134,9 @@ class node(object):
 
     def getWayID(self):
         return self.__wayID
+
+    def getIDTuple(self):
+        return (self.getPos(),self.getWayID())
 
     def toJson(self):
         return {'pos': self.__pos, 'wayType': self.__wayType, 'wayID': self.__wayID}

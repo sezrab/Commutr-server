@@ -2,27 +2,6 @@ from utils import *
 from graph import *
 from data import *
 
-# def backtrack(graph, currNode, startNode, path = [], pathCoords=[], cumulativeG = 0, cumulativeF = 0): # recursive back track
-#     path.append(currNode)
-#     pathCoords.append(currNode.getPos())
-#     # print(currNode.getPos(),startNode.getPos())
-    
-#     if currNode.isAt(startNode):
-#         return path, pathCoords, cumulativeG, cumulativeF
-    
-#     if currNode.isAt(startNode):
-#         print("ITS HERE")
-
-#     fromNode = currNode.getEdge().getFromNode()
-
-#     if fromNode.isAt(currNode):
-#         print("ITS HERE!!")
-
-#     cumulativeF += currNode.f()
-#     cumulativeG += currNode.g()
-
-#     return backtrack(graph, fromNode, startNode, path, pathCoords, cumulativeG, cumulativeF)
-
 def backtrack(endNode,startNode):
     currNode = endNode
     path = []
@@ -35,7 +14,7 @@ def backtrack(endNode,startNode):
         cumulativeF+=currNode.f()
     return path,cumulativeG,cumulativeF
 
-def aStarSearch(graph, startNode, endNode):
+def aStarSearch(graph, startNode, endNode, verbose=False):
     startNode = astarNode.fromNode(startNode)
     endNode = astarNode.fromNode(endNode)
 
@@ -45,29 +24,32 @@ def aStarSearch(graph, startNode, endNode):
     startNode.setCost(0,0,startNode)
     priorityQueue.enqueue(startNode)
 
-    visited = [] # visited is a list of coordinates.
+    visited = [] # list of tuples (coordinate, wayID)
 
     while not priorityQueue.isEmpty():
         # while the queue is not empty, dequeue and explore neighbors.
         currentNode = priorityQueue.dequeue()
-        
+
         if currentNode.isAt(endNode):
             return backtrack(currentNode,startNode)[0]
 
-        visited.append(currentNode.getPos())
+        visited.append(currentNode.getIDTuple())
 
-        print("Current distance from end is:",haversine(currentNode.getPos(),endNode.getPos()))
+        if verbose:
+            print("Current distance from end is:",haversine(currentNode.getPos(),endNode.getPos()))
 
         nodeEdges = graph.getNodeEdges(currentNode)
 
-        print("This node has",len(nodeEdges),"edges")
+        if verbose:
+            print("This node has",len(nodeEdges),"edges")
 
         for edge in nodeEdges:
 
             toNode = edge.getToNode()
 
-            if toNode.getPos() in visited:
-                print("Node is already visited")
+            if toNode.getIDTuple() in visited:
+                if verbose:
+                    print("Node is already visited")
                 continue
 
             neighbourH = haversine(toNode.getPos(),endNode.getPos())
@@ -81,17 +63,19 @@ def aStarSearch(graph, startNode, endNode):
             nodeAtPos = priorityQueue.hasNodeAtPos(toNode_astar)
 
             if nodeAtPos is not None:
-                if neighbourG < nodeAtPos.g():
-                    # the new path is better than the existing path, so we update the new path.
-                    priorityQueue.remove(nodeAtPos)
-                else:
-                    # the existing path is better so this path should be ignored
-                    continue
+                print("There is a better way to go for this route.")
+            #     if neighbourG < nodeAtPos.g():
+            #         # the new path is better than the existing path, so we update the new path.
+            #         print("Path equal?",nodeAtPos.getEdge().getFromNode()==toNode_astar.getEdge().getFromNode())
+            #         priorityQueue.remove(nodeAtPos)
+            #     else:
+            #         # the existing path is better so this path should be ignored
+            #         continue
                 
             priorityQueue.enqueue(toNode_astar)
 
 
-    return None,None
+    return None
 
 
 class astarNode(node):

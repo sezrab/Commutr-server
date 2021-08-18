@@ -41,11 +41,16 @@ class PriorityQueue(object):
         return len(self.__queue) == 0
   
     def contains(self, aNode):
-        return aNode in self.__queue
+        ndID = aNode.getIDTuple()
+        for nd in self.__queue:
+            if ndID == nd.getIDTuple():
+                return True
+        return False
 
     def hasNodeAtPos(self, aNode):
+        ndID = aNode.getIDTuple()
         for nd in self.__queue:
-            if aNode.isAt(nd):
+            if aNode.isAt(nd) and ndID != nd.getIDTuple():
                 return nd
 
     def remove(self,aNode):
