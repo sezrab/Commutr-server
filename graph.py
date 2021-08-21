@@ -103,9 +103,12 @@ class way(object):
     
     def getNodeNeighboursOnWay(self, aNode):
         nNodes = len(self.__nodes)
+
+        # find index of node at position of aNode
         for i in range(len(self.__nodes)):
             if self.__nodes[i].isAt(aNode):
                 break
+        
         if i == 0:
             return [self.__nodes[i+1]]
         elif i == nNodes-1:

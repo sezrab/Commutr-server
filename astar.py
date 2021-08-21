@@ -40,46 +40,54 @@ def aStarSearch(graph, startNode, endNode, verbose=False):
         if currentNode.isAt(endNode):
             return backtrack(currentNode,startNode)[0]
 
-        if verbose:
-            print("Current distance from end is:",haversine(currentNode.getPos(),endNode.getPos()))
-
+        # for each node_successor of node_current
         nodeEdges = graph.getNodeEdges(currentNode)
 
-        if verbose:
-            print("This node has",len(nodeEdges),"edges")
+        print("Attempt on",str(currentNode))
 
-        # for each node_successor of node_current
-        for anEdge in nodeEdges:
-
-            successorNode = anEdge.getToNode()
-            # Set successor_current_cost = g(node_current) + w(node_current, node_successor)
-            successorNodeGCost =  anEdge.getCost() + backtrack(currentNode,startNode)[1]
-            
-            successor_open = openQueue.hasNodeAtPos(successorNode)
-            successor_closed = closedLi.hasNodeAtPos(successorNode)
-            
-            successorNeighbours = graph.getNodeEdges(successorNode)
-
-            # if node_successor is in the OPEN list
-            if successor_open is not None and successor_open.g() <= successorNodeGCost:
-                # if g(node_successor) ≤ successor_current_cost continue
-                continue            
-            # else if node_successor is in the CLOSED list
-            elif successor_closed is not None and successor_closed.g() <= successorNodeGCost:
-                # if g(node_successor) ≤ successor_current_cost continue
-                if len(graph.getNodeEdges(successor_closed)) != len(successorNeighbours):
-                    continue
-            else:        
-                # Else add node_successor to the OPEN list
-                successorNodeHCost = haversine(successorNode.getPos(),endNode.getPos())
-                openQueue.enqueue(astarNode.fromNode(successorNode,successorNodeGCost,successorNodeHCost,anEdge))
-        
-            # Set g(node_successor) = successor_current_cost
-            # Set the parent of node_successor to node_current
-        
         # Add node_current to the CLOSED list
         closedLi.append(currentNode)
 
+        for anEdge in nodeEdges:
+
+            if anEdge.getToNode().isAt(currentNode):
+                continue 
+
+            successorNode = astarNode.fromNode(
+                anEdge.getToNode(),
+                # Set successor_current_cost = g(node_current) + w(node_current, node_successor)
+                anEdge.getCost() + backtrack(currentNode,startNode)[1],
+                haversine(anEdge.getToNode().getPos(),endNode.getPos()),
+                anEdge,
+            )
+
+            successorNeighbours = graph.getNodeEdges(successorNode)
+
+            successor_closed = closedLi.hasNodeAtPos(successorNode)
+
+            if successor_closed:
+                print("this node has already been visited")
+                # this node has already been visited
+                if (len(successorNeighbours) > len(graph.getNodeEdges(successor_closed))) or successorNode.g() < successor_closed.g():
+                    # the new node at this position has more neighbors or a better cost, so we should unvisit.
+                    print("Unvisiting node because we have more neighbors")
+                    closedLi.remove(successor_closed)
+                else:
+                    print("moving on from this pre-visited node")
+                    # move on since we've tried a better path down this route already.
+                    continue
+                
+            # if node_successor is in the OPEN list
+            successor_open = openQueue.hasNodeAtPos(successorNode)
+            if successor_open is not None and successorNode.g() <= successor_open.g():
+                print("Removing successor from open list")
+                # we found a route with a lower G cost, so remove the old one from the open list
+                openQueue.remove(successor_open)
+
+            # add node_successor to the OPEN list
+            print("adding ",successorNode)
+            openQueue.enqueue(successorNode)
+        
     print("Algorithm finished. At end node? -",currentNode.isAt(endNode))
 
     return backtrack(currentNode,startNode)[0]
@@ -91,9 +99,13 @@ class closedList(object):
     def append(self,obj):
         self.__closedList.append(obj)
 
+    def remove(self,item):
+        self.__closedList.remove(item)
+
     def hasNodeAtPos(self,aNode):
+        ndID = aNode.getIDTuple()
         for nd in self.__closedList:
-            if aNode.isAt(nd):
+            if aNode.isAt(nd) and ndID != nd.getIDTuple():
                 return nd
         return None
 
