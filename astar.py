@@ -14,26 +14,31 @@ def backtrack(endNode,startNode):
         cumulativeF+=currNode.f()
     return path,cumulativeG,cumulativeF
 
+# https://mat.uab.cat/~alseda/MasterOpt/AStar-Algorithm.pdf
 def aStarSearch(graph, startNode, endNode, verbose=False):
-    startNode = astarNode.fromNode(startNode)
-    endNode = astarNode.fromNode(endNode)
+    startNode = astarNode.fromNode(startNode, 0, 0, edge(startNode,startNode,0))
 
     # enqueue start node in priority queue with p = 0
-    priorityQueue = PriorityQueue()
     
-    startNode.setCost(0,0,startNode)
-    priorityQueue.enqueue(startNode)
+    # Put node_start in the OPEN list with f(node_start) = h(node_start) (initialization)
+    openQueue = PriorityQueue()    
+    openQueue.enqueue(startNode)
+    
+    closedLi = closedList()
 
-    visited = [] # list of tuples (coordinate, wayID)
+    # consists on nodes that have been visited and expanded (sucessors have been explored already and
+    # included in the open list, if this was the case).
 
-    while not priorityQueue.isEmpty():
+    # while the OPEN list is not empty {
+    while not openQueue.isEmpty():
         # while the queue is not empty, dequeue and explore neighbors.
-        currentNode = priorityQueue.dequeue()
+        
+        # Take from the open list the node node_current with the lowest F cost
+        currentNode = openQueue.dequeue()
 
+        # if node_current is node_goal we have found the solution; break
         if currentNode.isAt(endNode):
             return backtrack(currentNode,startNode)[0]
-
-        visited.append(currentNode.getIDTuple())
 
         if verbose:
             print("Current distance from end is:",haversine(currentNode.getPos(),endNode.getPos()))
@@ -43,57 +48,65 @@ def aStarSearch(graph, startNode, endNode, verbose=False):
         if verbose:
             print("This node has",len(nodeEdges),"edges")
 
-        for edge in nodeEdges:
+        # for each node_successor of node_current
+        for anEdge in nodeEdges:
 
-            toNode = edge.getToNode()
-
-            if toNode.getIDTuple() in visited:
-                if verbose:
-                    print("Node is already visited")
-                continue
-
-            neighbourH = haversine(toNode.getPos(),endNode.getPos())
-            neighbourG =  edge.getCost() + backtrack(currentNode,startNode)[1]
-
-            toNode_astar = astarNode.fromNode(toNode)
-
-            toNode_astar.setCost(neighbourG, neighbourH, edge)
+            successorNode = anEdge.getToNode()
+            # Set successor_current_cost = g(node_current) + w(node_current, node_successor)
+            successorNodeGCost =  anEdge.getCost() + backtrack(currentNode,startNode)[1]
             
-            # check if there is a path to neighbor node already
-            nodeAtPos = priorityQueue.hasNodeAtPos(toNode_astar)
+            successor_open = openQueue.hasNodeAtPos(successorNode)
+            successor_closed = closedLi.hasNodeAtPos(successorNode)
+            
+            successorNeighbours = graph.getNodeEdges(successorNode)
 
-            if nodeAtPos is not None:
-                print("There is a better way to go for this route.")
-            #     if neighbourG < nodeAtPos.g():
-            #         # the new path is better than the existing path, so we update the new path.
-            #         print("Path equal?",nodeAtPos.getEdge().getFromNode()==toNode_astar.getEdge().getFromNode())
-            #         priorityQueue.remove(nodeAtPos)
-            #     else:
-            #         # the existing path is better so this path should be ignored
-            #         continue
-                
-            priorityQueue.enqueue(toNode_astar)
+            # if node_successor is in the OPEN list
+            if successor_open is not None and successor_open.g() <= successorNodeGCost:
+                # if g(node_successor) ≤ successor_current_cost continue
+                continue            
+            # else if node_successor is in the CLOSED list
+            elif successor_closed is not None and successor_closed.g() <= successorNodeGCost:
+                # if g(node_successor) ≤ successor_current_cost continue
+                if len(graph.getNodeEdges(successor_closed)) != len(successorNeighbours):
+                    continue
+            else:        
+                # Else add node_successor to the OPEN list
+                successorNodeHCost = haversine(successorNode.getPos(),endNode.getPos())
+                openQueue.enqueue(astarNode.fromNode(successorNode,successorNodeGCost,successorNodeHCost,anEdge))
+        
+            # Set g(node_successor) = successor_current_cost
+            # Set the parent of node_successor to node_current
+        
+        # Add node_current to the CLOSED list
+        closedLi.append(currentNode)
 
+    print("Algorithm finished. At end node? -",currentNode.isAt(endNode))
 
-    return None
+    return backtrack(currentNode,startNode)[0]
 
+class closedList(object):
+    def __init__(self):
+        self.__closedList = []
+    
+    def append(self,obj):
+        self.__closedList.append(obj)
+
+    def hasNodeAtPos(self,aNode):
+        for nd in self.__closedList:
+            if aNode.isAt(nd):
+                return nd
+        return None
 
 class astarNode(node):
-    def __init__(self, pos, wayType, wayID):
+    def __init__(self, pos, wayType, wayID, g, h, anEdge):
         super().__init__(pos, wayType, wayID)
-        self.__g = None
-        self.__h = None
-        self.__f = None
-        self.__edge = None
-
-    def getEdge(self):
-        return self.__edge
-
-    def setCost(self, g, h, edge):
         self.__g = g
         self.__h = h
         self.__f = g+h
-        self.__edge = edge
+        self.__edge = anEdge
+
+    def getEdge(self):
+        return self.__edge
 
     def g(self):
         return self.__g
@@ -105,6 +118,6 @@ class astarNode(node):
         return self.__h
 
     @staticmethod
-    def fromNode(aNode):
+    def fromNode(aNode, g, h, anEdge):
         pos, wayType, wayID = aNode.getInfo()
-        return astarNode(pos, wayType, wayID)
+        return astarNode(pos, wayType, wayID, g, h, anEdge)

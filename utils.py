@@ -25,7 +25,7 @@ class timer(object):
         
     def elapsed(self):
         return time.time() - self.__start
-        
+
     def reset(self):
         self.__start = time.time()
 
@@ -33,13 +33,13 @@ class timer(object):
 class PriorityQueue(object):
     def __init__(self):
         self.__queue = []
-  
+
     def __str__(self):
         return ' '.join([str(i) for i in self.__queue])
-  
+
     def isEmpty(self):
         return len(self.__queue) == 0
-  
+
     def contains(self, aNode):
         ndID = aNode.getIDTuple()
         for nd in self.__queue:
@@ -52,6 +52,7 @@ class PriorityQueue(object):
         for nd in self.__queue:
             if aNode.isAt(nd) and ndID != nd.getIDTuple():
                 return nd
+        return None
 
     def remove(self,aNode):
         self.__queue.remove(aNode)
