@@ -14,7 +14,7 @@ def backtrack(endNode,startNode):
         cumulativeF+=currNode.f()
     return path,cumulativeG,cumulativeF
 
-# https://mat.uab.cat/~alseda/MasterOpt/AStar-Algorithm.pdf
+# https://www.edureka.co/blog/a-search-algorithm/
 def aStarSearch(graph, startNode, endNode, verbose=False):
     """
     let the openList equal empty list of nodes +
