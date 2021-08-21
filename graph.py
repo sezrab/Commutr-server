@@ -12,7 +12,7 @@ class graph(object):
         """
         The openstreetmap data does not contain edges, so this function generates a cost of travelling between two nodes as if there were pre set edges.
         """
-        return toNode.distanceFrom(fromNode) * ((self.nodeCost(fromNode)+self.nodeCost(toNode))/2)
+        return toNode.distanceFrom(fromNode) # * ((self.nodeCost(fromNode)+self.nodeCost(toNode))/2)
 
     def nodeCost(self, aNode):
         """
@@ -26,24 +26,22 @@ class graph(object):
             print("!!!!!!!!!! THERE WAS AN UNKNOWN ROUTE")
             return 50
 
-    def nodeIsOnJunction(self,aNode):
-        juncNodes = []
+    def junctionNeighbours(self,aNode):
+        neighbours = []
         for juncNode in self.__junctionNodes:
             if juncNode.isAt(aNode):
-                juncNodes.append(juncNode)
-        return juncNodes
+                juncWayID = juncNode.getWayID()
+                juncWay = self.__ways[juncWayID]
+                neighbours += juncWay.getNodeNeighboursOnWay(juncNode)
+        return neighbours
 
     def getNodeEdges(self,aNode):
         edges = []
-        neighbours = []
-        isOnJunc = self.nodeIsOnJunction(aNode)
         wayID = aNode.getWayID()
 
         thisWay = self.__ways[wayID]
-        neighbours += thisWay.getNodeNeighboursOnWay(aNode)
 
-        if len(isOnJunc) > 0:
-            neighbours += isOnJunc
+        neighbours = thisWay.getNodeNeighboursOnWay(aNode) + self.junctionNeighbours(aNode)
         
         for neighbour in neighbours:
             edges.append(edge(aNode, neighbour, self.edgeCost(aNode,neighbour)))
