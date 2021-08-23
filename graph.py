@@ -1,153 +1,80 @@
-import utils
-import constants
+from map import api
+from lxml import etree as ET
 
-
-class graph(object):
-    def __init__(self, nodes, ways, junctionNodes):
-        self.__nodes = nodes # TODO: Remove after debugging since it uses uneccessary memory
-        self.__ways = ways
-        self.__junctionNodes = junctionNodes
-
-    def edgeCost(self, fromNode, toNode):
-        """
-        The openstreetmap data does not contain edges, so this function generates a cost of travelling between two nodes as if there were pre set edges.
-        """
-        return toNode.distanceFrom(fromNode) # * ((self.nodeCost(fromNode)+self.nodeCost(toNode))/2)
-
-    def nodeCost(self, aNode):
-        """
-        Get the favourability of travelling along this node.
-        For example, travelling over a main road will have a very high cost for cyclists since it is an unpleasant way to travel, and a cycleway will have a low cost.
-        TODO: Specify type of travel
-        """
-        try:
-            return constants.cyclingWayCostMap[aNode.getWayType()]
-        except:
-            print("!!!!!!!!!! THERE WAS AN UNKNOWN ROUTE")
-            return 50
-
-    def junctionNeighbours(self,aNode):
+class Graph(object):
+    def __init__(self):
+        self.__ways = {way.attrib['id']:Way(way) for way in root.findall('way')}
+    
+    def getWays(self):
+        return self.__ways
+    
+    def getNeighbours(self,node):
+        ways = node.getWays()
         neighbours = []
-        for juncNode in self.__junctionNodes:
-            if juncNode.isAt(aNode):
-                juncWayID = juncNode.getWayID()
-                juncWay = self.__ways[juncWayID]
-                neighbours += juncWay.getNodeNeighboursOnWay(juncNode)
+        for way in ways:
+            neighbours += self.__ways[way].getNeighboursOnWay(node)
         return neighbours
 
-    def getNodeEdges(self,aNode):
-        edges = []
-        wayID = aNode.getWayID()
 
-        thisWay = self.__ways[wayID]
+class Node(object):
+    def __init__(self, nodeElement):
+        self.__nodeElement = nodeElement
+        self.__id = nodeElement.attrib['id']
+        self.__ways = None
 
-        neighbours = thisWay.getNodeNeighboursOnWay(aNode) + self.junctionNeighbours(aNode)
-        
-        for neighbour in neighbours:
-            edges.append(edge(aNode, neighbour, self.edgeCost(aNode,neighbour)))
-        
-        return edges
+    def getNode(self):
+        return self.__nodeElement
 
-    def closestNode(self, coords):
-        closestNode = None
-        closestDistance = None
-        for aNode in self.__nodes:
-            d = utils.haversine(aNode.getPos(),coords)
-            if closestNode is None or d < closestDistance:
-                closestDistance = d
-                closestNode = aNode
-        return closestNode
-
-    def getClosestTo(self, aNode, nodesList=None, exclusions=[]):
-        """
-        Get closest node to a coordinate.
-        """
-        if nodesList is None:
-            nodesList = self.__nodes
-
-        closestNode = None
-        closestDistance = None
-        closestIndex = None
-        for i in range(len(nodesList)):
-            nd = nodesList[i]
-            if nd.isAt(aNode) or nd.getPos() in exclusions:
-                continue
-            d = utils.haversine(aNode.getPos(), nd.getPos())
-            if closestNode is None or d < closestDistance:
-                closestDistance = d
-                closestIndex = i
-                closestNode = nd
-
-        return closestNode, closestIndex
-
-class edge(object):
-    def __init__(self,fromNode,toNode,cost):
-        self.__fromNode = fromNode
-        self.__toNode = toNode
-        self.__cost = cost
-
-    def getCost(self):
-        return self.__cost
-
-    def getFromNode(self):
-        return self.__fromNode
-
-    def getToNode(self):
-        return self.__toNode
-
-class way(object):
-    def __init__(self,nodes):
-        self.__nodes = nodes
-    
-    def getNodeNeighboursOnWay(self, aNode):
-        nNodes = len(self.__nodes)
-
-        # find index of node at position of aNode
-        for i in range(len(self.__nodes)):
-            if self.__nodes[i].isAt(aNode):
-                break
-        
-        if i == 0:
-            return [self.__nodes[i+1]]
-        elif i == nNodes-1:
-            return [self.__nodes[i-1]]
-        else:
-            return [self.__nodes[i-1],self.__nodes[i+1]]
-
-
-class node(object):
-    def __init__(self, pos, wayType, wayID):
-        self.__pos = pos
-        self.__wayType = wayType
-        self.__wayID = wayID
-
-    def getInfo(self):
-        return self.__pos, self.__wayType, self.__wayID
+    def getID(self):
+        return self.__id
 
     def getPos(self):
-        return self.__pos
+        node = self.getNode()
+        return float(node.attrib['lat']),float(node.attrib['lon'])
 
-    def isAt(self, aNode):
-        return self.getPos() == aNode.getPos()
-
-    def getWayType(self):
-        return self.__wayType
-
-    def getWayID(self):
-        return self.__wayID
-
-    def getIDTuple(self):
-        return (self.getPos(),self.getWayID())
-
-    def toJson(self):
-        return {'pos': self.__pos, 'wayType': self.__wayType, 'wayID': self.__wayID}
-
-    def distanceFrom(self, other):
-        return utils.haversine(self.__pos, other.getPos())
+    def getWays(self): # TODO: do not create new ways.
+        # get all ways that this node lies on
+        if self.__ways is None:
+            self.__ways = [way.attrib['id'] for way in root.xpath('way[tag/@k="highway" and nd/@ref={}]'.format(self.__id))]
+        return self.__ways
 
     @staticmethod
-    def fromJson(data):
-        return node(data['pos'], data['wayType'], data['wayID'])
+    def fromID(id):
+        return Node(Node.getNodeElementByID(id))
+        
+    @staticmethod
+    def getNodeElementByID(id):
+        return root.find('node[@id="{}"]'.format(id))
 
-    def __str__(self):
-        return str(self.__pos)
+
+class Way(object):
+    def __init__(self, wayElement):
+        self.__wayElement = wayElement
+        self.__nodes = None
+
+    def getNodeIndex(self,nodeID):
+        count = 0
+        for node in self.getNodes():
+            if node.getID() == nodeID:
+                return count
+            count += 1
+        return None
+
+    def getNeighboursOnWay(self,node):
+        nodeIndex = self.getNodeIndex(node.getID())
+        maxIndex = len(self.getNodes())-1
+        neighbours = []
+        if nodeIndex > 0:
+            neighbours.append(self.getNodes()[nodeIndex-1])
+        if nodeIndex < maxIndex:
+            neighbours.append(self.getNodes()[nodeIndex+1])
+        return neighbours
+
+    def getNodes(self):
+        if self.__nodes is None:
+            self.__nodes = [Node.fromID(nd.attrib['ref']) for nd in self.__wayElement.findall('nd')]
+        return self.__nodes
+
+sherborne = (50.950340,-2.520400) # lat, lon
+
+root = ET.fromstring(api.roadQuery(sherborne,1))

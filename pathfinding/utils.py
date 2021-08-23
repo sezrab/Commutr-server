@@ -1,7 +1,5 @@
 from math import sin,cos,atan2,sqrt,radians
-import time
-import constants
-
+from map.constants import earthRadius
 
 def haversine(a, b):
     '''
@@ -15,20 +13,9 @@ def haversine(a, b):
     
     a = (sin(dlat/2))**2 + cos(lat1) * cos(lat2) * (sin(dlon/2))**2
     c = 2 * atan2(sqrt(a), sqrt(1-a))
-    d = c * constants.earthRad
+    d = c * earthRadius
 
     return d
-
-class timer(object):
-    def __init__(self):
-        self.__start = time.time()
-        
-    def elapsed(self):
-        return time.time() - self.__start
-
-    def reset(self):
-        self.__start = time.time()
-
 
 class PriorityQueue(object):
     def __init__(self):
@@ -47,11 +34,10 @@ class PriorityQueue(object):
                 return True
         return False
 
-    def hasNodeAtPos(self, aNode):
-        ndID = aNode.getIDTuple()
-        for nd in self.__queue:
-            if aNode.isAt(nd) and ndID != nd.getIDTuple():
-                return nd
+    def hasNode(self, aNode):
+        for node in self.__queue:
+            if node.getID() == aNode.getID():
+                return node
         return None
 
     def remove(self,aNode):
@@ -69,3 +55,4 @@ class PriorityQueue(object):
   
     def dequeue(self):
         return self.__queue.pop(0)
+    
