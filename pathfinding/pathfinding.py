@@ -43,7 +43,7 @@ def astar(graph, startNode, endNode):
     closedList = []
     
     # put the startNode on the openList (leave it's f at zero)
-    startNode = pathfindingNode.fromNode(startNode, startNode, 0, 0)
+    startNode = pathfindingNode.fromNode(graph.getXML(), startNode, startNode, 0, 0)
     openQueue.enqueue(startNode)
 
     # while the openList is not empty
@@ -73,6 +73,7 @@ def astar(graph, startNode, endNode):
             # newG = utils.haversine(neighbour.getPos(),currentNode.getPos()) + backtrack(currentNode,startNode)[1]
             # print("Total G for this neighbour is",newG)
             childNode = pathfindingNode.fromNode(
+                graph.getXML(),
                 neighbour,
                 currentNode,
                 utils.haversine(neighbour.getPos(),currentNode.getPos()) + backtrack(currentNode,startNode)[1],
@@ -104,8 +105,8 @@ def astar(graph, startNode, endNode):
     return backtrack(currentNode,startNode)[0]
 
 class pathfindingNode(Node):
-    def __init__(self, nodeElement, parentNode, g, h):
-        super().__init__(nodeElement)
+    def __init__(self, xml, nodeElement, parentNode, g, h):
+        super().__init__(xml, nodeElement)
         self.__parentNode = parentNode
         self.__g = g
         self.__h = h
@@ -121,5 +122,5 @@ class pathfindingNode(Node):
         return self.__f
     
     @staticmethod
-    def fromNode(node,parent,g,h):
-        return pathfindingNode(node.getNode(),parent,g,h)
+    def fromNode(xml,node,parent,g,h):
+        return pathfindingNode(xml,node.getNode(),parent,g,h)

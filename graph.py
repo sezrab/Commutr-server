@@ -1,10 +1,8 @@
-from map import api
-from lxml import etree as ET
-
 class Graph(object):
-    def __init__(self):
-        self.__ways = {way.attrib['id']:Way(way) for way in root.findall('way')}
-    
+    def __init__(self,xml):
+        self.__ways = {way.attrib['id']:Way(xml,way) for way in xml.findall('way')}
+        self.__xml = xml
+
     def getWays(self):
         return self.__ways
     
@@ -15,12 +13,15 @@ class Graph(object):
             neighbours += self.__ways[way].getNeighboursOnWay(node)
         return neighbours
 
+    def getXML(self):
+        return self.__xml
 
 class Node(object):
-    def __init__(self, nodeElement):
+    def __init__(self, xml, nodeElement):
         self.__nodeElement = nodeElement
         self.__id = nodeElement.attrib['id']
         self.__ways = None
+        self.__xml = xml
 
     def getNode(self):
         return self.__nodeElement
@@ -32,25 +33,27 @@ class Node(object):
         node = self.getNode()
         return float(node.attrib['lat']),float(node.attrib['lon'])
 
-    def getWays(self): # TODO: do not create new ways.
+    def getWays(self):
         # get all ways that this node lies on
         if self.__ways is None:
-            self.__ways = [way.attrib['id'] for way in root.xpath('way[tag/@k="highway" and nd/@ref={}]'.format(self.__id))]
+            self.__ways = [way.attrib['id'] for way in self.__xml.xpath('way[tag/@k="highway" and nd/@ref={}]'.format(self.__id))]
         return self.__ways
 
-    @staticmethod
-    def fromID(id):
-        return Node(Node.getNodeElementByID(id))
         
     @staticmethod
-    def getNodeElementByID(id):
-        return root.find('node[@id="{}"]'.format(id))
+    def fromID(xml,id):
+        return Node(xml,Node.getNodeElementByID(xml,id))
+        
+    @staticmethod
+    def getNodeElementByID(xml,id):
+        return xml.find('node[@id="{}"]'.format(id))
 
 
 class Way(object):
-    def __init__(self, wayElement):
+    def __init__(self, xml, wayElement):
         self.__wayElement = wayElement
         self.__nodes = None
+        self.__xml = xml
 
     def getNodeIndex(self,nodeID):
         count = 0
@@ -72,9 +75,5 @@ class Way(object):
 
     def getNodes(self):
         if self.__nodes is None:
-            self.__nodes = [Node.fromID(nd.attrib['ref']) for nd in self.__wayElement.findall('nd')]
+            self.__nodes = [Node.fromID(self.__xml,nd.attrib['ref']) for nd in self.__wayElement.findall('nd')]
         return self.__nodes
-
-sherborne = (50.950340,-2.520400) # lat, lon
-
-root = ET.fromstring(api.roadQuery(sherborne,1))

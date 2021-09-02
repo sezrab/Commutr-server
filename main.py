@@ -2,11 +2,16 @@ import graph
 from pathfinding import pathfinding
 import random
 import matplotlib.pyplot as plt
+from lxml import etree as ET
+from map import api
 
-# print(root.find('node[@id="2437684359"]').attrib['id'])
+sherborne = (50.950340,-2.520400) # lat, lon
+print("Getting data...")
+root = ET.fromstring(api.roadQuery(sherborne,5))
+# root = ET.parse('map.osm.xml')
+aGraph = graph.Graph(root)
 
-aGraph = graph.Graph()
-
+print("Choosing two random points...")
 ways = list(aGraph.getWays().values())
 
 nodes = []
@@ -15,6 +20,7 @@ for i in range(2):
     randWay = random.choice(ways)
     nodes.append(random.choice(randWay.getNodes()))
 
+print("Getting data ready for plot...")
 for way in aGraph.getWays().values():
     x = []
     y = []
@@ -28,7 +34,7 @@ print("Started pathfinding...")
 
 route = pathfinding.astar(aGraph,nodes[0],nodes[1])
 
-# print(route)
+print("Plotting...")
 
 x = []
 y = []
@@ -41,5 +47,3 @@ for node in route:
 plt.plot(x,y,c='b')
 
 plt.show()
-
-# print(Node.fromID(2435710286).getNeighbours())
