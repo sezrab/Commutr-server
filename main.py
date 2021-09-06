@@ -7,7 +7,7 @@ from map import api
 
 sherborne = (50.950340,-2.520400) # lat, lon
 print("Getting data...")
-root = ET.fromstring(api.roadQuery(sherborne,5))
+root = ET.fromstring(api.roadQuery(sherborne,2))
 # root = ET.parse('map.osm.xml')
 aGraph = graph.Graph(root)
 
