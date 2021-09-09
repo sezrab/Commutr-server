@@ -1,5 +1,5 @@
 from math import sin,cos,atan2,sqrt,radians
-from map.constants import earthRadius
+from maps.constants import earthRadius
 
 def haversine(a, b):
     '''

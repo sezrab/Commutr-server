@@ -1,6 +1,5 @@
 import requests
 from . import constants
-from . import utils
 
 def roadQuery(center,radius):
     lat,long = center

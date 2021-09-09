@@ -1,4 +1,4 @@
-from graph import Node
+from .graph import Node
 from . import utils
 
 def backtrack(endNode,startNode):
