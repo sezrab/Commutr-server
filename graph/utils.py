@@ -1,22 +1,6 @@
 from math import sin,cos,atan2,sqrt,radians
 from maps.constants import earthRadius
 
-def haversine(a, b):
-    '''
-    determines the great-circle distance between two GPS points
-    https://en.wikipedia.org/wiki/Haversine_formula
-    '''
-    lat1, long1, lat2, long2 = map(radians, [a[1], a[0], b[1], b[0]])
-    
-    dlon = long2 - long1
-    dlat = lat2 - lat1
-    
-    a = (sin(dlat/2))**2 + cos(lat1) * cos(lat2) * (sin(dlon/2))**2
-    c = 2 * atan2(sqrt(a), sqrt(1-a))
-    d = c * earthRadius
-
-    return d
-
 class PriorityQueue(object):
     def __init__(self):
         self.__queue = []

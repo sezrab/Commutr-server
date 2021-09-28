@@ -106,7 +106,7 @@ class Way(object):
             if lowpoly:
                 self.__nodes = [Node.fromID(self.__xml,nd.attrib['ref']) for nd in self.__wayElement.findall('nd') if Node.isJunction(nd.attrib['ref'],self.__xml)]
             else:
-                print("getting all nodes on a way")
+                # print("getting all nodes on a way")
                 self.__nodes = [Node.fromID(self.__xml,nd.attrib['ref']) for nd in self.__wayElement.findall('nd')]
         return self.__nodes
 

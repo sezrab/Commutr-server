@@ -1,6 +1,6 @@
 from .graph import Node
 from . import utils
-
+import maps.utils
 def backtrack(endNode,startNode):
     currNode = endNode
     path = []
@@ -13,6 +13,9 @@ def backtrack(endNode,startNode):
         cumulativeF+=currNode.f()
     return path,cumulativeG,cumulativeF
 
+# TODO: https://en.wikipedia.org/wiki/A*_search_algorithm#Pseudocode
+# TODO: educative
+# TODO: https://isaaccomputerscience.org/concepts/dsa_search_a_star?examBoard=all&stage=all
 def astar(graph, startNode, endNode):
     """
     let the openList equal empty list of nodes +
@@ -53,6 +56,8 @@ def astar(graph, startNode, endNode):
         # remove the currentNode from the openList
         currentNode = openQueue.dequeue()
         
+        print("The current node",currentNode.getID(),"is",maps.utils.haversine(currentNode.getPos(),endNode.getPos()),"m from the end")
+
         # add the currentNode to the closedList
         closedList.append(currentNode.getID())
 
@@ -70,14 +75,14 @@ def astar(graph, startNode, endNode):
         for neighbour in neighbours:
             # print()
             # print("Inspecting neighbour")
-            # newG = utils.haversine(neighbour.getPos(),currentNode.getPos()) + backtrack(currentNode,startNode)[1]
-            # print("Total G for this neighbour is",newG)
+            # print("This neighbour is",maps.utils.haversine(neighbour.getPos(),endNode.getPos()),"m from the end")
             childNode = pathfindingNode.fromNode(
                 graph.getXML(),
                 neighbour,
                 currentNode,
-                utils.haversine(neighbour.getPos(),currentNode.getPos()) + backtrack(currentNode,startNode)[1],
-                utils.haversine(neighbour.getPos(),endNode.getPos()),
+                # newG,
+                maps.utils.haversine(neighbour.getPos(),currentNode.getPos()) + backtrack(currentNode,startNode)[1],
+                maps.utils.haversine(neighbour.getPos(),endNode.getPos()),
             )
 
             # if child is in the closedList

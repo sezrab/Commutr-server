@@ -1,5 +1,17 @@
-earthRadius = 6371
+earthRadius = 6378100
 apiURL = "http://overpass-api.de/api/interpreter"
+
+wayQueryLine = "way[\"highway\"]({},{},{},{});"
+
+blankRoadQuery = """[out:xml][timeout:25];
+// gather results
+(
+  {}
+);
+out body;
+>;
+out skel qt;
+"""
 
 roadQuery = """[out:xml][timeout:25];
 // gather results
