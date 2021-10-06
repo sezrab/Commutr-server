@@ -9,5 +9,6 @@ results = {
     'displacement & bearings': displacementBearing.run(),
 }
 
+
 for test in results.keys():
     print(test, "-", results[test])

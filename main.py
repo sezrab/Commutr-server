@@ -10,8 +10,8 @@ import random
 
 from debugUtils import timer
 
-visualise = False
-offline = False
+visualise = True
+offline = True
 
 sherborne = (50.950340,-2.520400) # lat, lon
 yeovil = (50.943647,-2.647176)
@@ -42,22 +42,21 @@ print("Finished getting data. Took",tmr,"seconds")
 aGraph = graph.Graph(root)
 
 print("Choosing two random points...")
-ways = list(aGraph.getWays().values())
 
-nodes = []
+a,b = random.choices(aGraph.junctionNodes,k=2)
 
-for i in range(2):
-    randWay = random.choice(ways)
-    nodes.append(random.choice(randWay.getNodes()))
+# print(len(aGraph.getNeighbouringNodes(aGraph.nodes[a])))
+
+# input("paused")
 
 if visualise:
     tmr.reset()
     print("Getting data ready for plot...")
-    for way in aGraph.getWays().values():
+    for way in aGraph.ways.values():
         x = []
         y = []
-        for node in way.getNodes():
-            lat,lon = node.getPos()
+        for nodeID in way.nodeIDs:
+            lat,lon = aGraph.nodes[nodeID].position
             x.append(lon)
             y.append(lat)
         plt.plot(x,y,c='r')
@@ -67,7 +66,9 @@ tmr.reset()
 
 print("Started pathfinding...")
 
-route = aGraph.buildRouteFromJunctions(pathfinding.astar(aGraph,nodes[0],nodes[1]))
+# route = aGraph.buildRouteFromJunctions(pathfinding.astar(aGraph,nodes[0],nodes[1]))
+
+route = pathfinding.astar(aGraph,aGraph.nodes[a],aGraph.nodes[b])
 
 print("Got route in",tmr,"seconds")
 

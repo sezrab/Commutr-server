@@ -1,6 +1,9 @@
+from os import fsdecode
 from .graph import Node
 from . import utils
-import maps.utils
+from maps.utils import haversine
+from math import inf
+
 def backtrack(endNode,startNode):
     currNode = endNode
     path = []
@@ -13,101 +16,116 @@ def backtrack(endNode,startNode):
         cumulativeF+=currNode.f()
     return path,cumulativeG,cumulativeF
 
-# TODO: https://en.wikipedia.org/wiki/A*_search_algorithm#Pseudocode
-# TODO: educative
-# TODO: https://isaaccomputerscience.org/concepts/dsa_search_a_star?examBoard=all&stage=all
-def astar(graph, startNode, endNode):
-    """
-    let the openList equal empty list of nodes +
-    let the closedList equal empty list of nodes +
-    put the startNode on the openList (leave it's f at zero) +
-    while the openList is not empty +
-        let the currentNode equal the node with the least f value +
-        remove the currentNode from the openList +
-        add the currentNode to the closedList +
-        if currentNode is the goal +
-            You've found the end! +
-        let the children of the currentNode equal the adjacent nodes +
-        for each child in the children +
-            if child is in the closedList +
-                continue to beginning of for loop +
-            child.g = currentNode.g + distance between child and current +
-            child.h = distance from child to end +
-            child.f = child.g + child.h +
-            if child.position is in the openList's nodes positions
-                if the child.g is higher than the openList node's g
-                    continue to beginning of for loop
-            add the child to the openList
-    """
-    # let the openList equal empty list of nodes
-    openQueue = utils.PriorityQueue()    
+def astar(graph,startNode,endNode):
+    # https://gist.github.com/damienstanton/7de65065bf584a43f96a
 
-    # let the closedList equal empty list of nodes
-    closedList = []
+    # closedset := the empty set    // The set of nodes already evaluated.
+    # openset := {start}    // The set of tentative nodes to be evaluated, initially containing the start node
+    # came_from := the empty map    // The map of navigated nodes.
+    closedset = []
+    openSet = utils.PriorityQueue()
+    openSet.enqueue(startNode,haversine(startNode.position,endNode.position))
+    cameFrom = {}
+
+    # g_score[start] := 0    // Cost from start along best known path.
+    # // Estimated total cost from start to goal through y.
+    # f_score[start] := g_score[start] + heuristic_cost_estimate(start, goal)
     
-    # put the startNode on the openList (leave it's f at zero)
-    startNode = pathfindingNode.fromNode(graph.getXML(), startNode, startNode, 0, 0)
-    openQueue.enqueue(startNode)
+    gScore = {}
+    gScore[startNode] = 0
 
-    # while the openList is not empty
-    while not openQueue.isEmpty():
-        # print()
-        # let the currentNode equal the node with the least f value
-        # remove the currentNode from the openList
-        currentNode = openQueue.dequeue()
-        
-        print("The current node",currentNode.getID(),"is",maps.utils.haversine(currentNode.getPos(),endNode.getPos()),"m from the end")
+    while not openSet.empty:
+        # current := the node in openset having the lowest f_score[] value
+        # remove current from openset
+        # add current to closedset
+        currentNode = openSet.dequeue()
+        if currentNode.position == endNode.position:
+            print("Finished")
+            return
+            # return reconstruct_path(came_from, goal)
+        closedset.append(currentNode)
+        # for each neighbor in neighbor_nodes(current)
 
-        # add the currentNode to the closedList
-        closedList.append(currentNode.getID())
-
-        # if currentNode is the goal
-            # You've found the end!
-
-        if currentNode.getID() == endNode.getID():
-            print("Finished!")
-            return backtrack(currentNode,startNode)[0]
-
-        # let the children of the currentNode equal the adjacent nodes
-        neighbours = graph.getNeighbours(currentNode)
-        # print("Popped node with %i neighbours from PQ"%len(neighbours))
-        # for each child in the children
-        for neighbour in neighbours:
-            # print()
-            # print("Inspecting neighbour")
-            # print("This neighbour is",maps.utils.haversine(neighbour.getPos(),endNode.getPos()),"m from the end")
-            childNode = pathfindingNode.fromNode(
-                graph.getXML(),
-                neighbour,
-                currentNode,
-                # newG,
-                maps.utils.haversine(neighbour.getPos(),currentNode.getPos()) + backtrack(currentNode,startNode)[1],
-                maps.utils.haversine(neighbour.getPos(),endNode.getPos()),
-            )
-
-            # if child is in the closedList
-                # continue to beginning of for loop
-                
-            if childNode.getID() in closedList:
-                # print("Already visited this node")
+        nbours = graph.getNeighbouringNodes(currentNode)
+        print("This node has",len(nbours),"neighbours")
+        print("G =",gScore[currentNode])
+        print("H =",haversine(currentNode.position,endNode.position))
+        for neighbour in nbours:
+            # if neighbor in closedset
+            #     continue
+            if neighbour in closedset:
+                print("This neighbour is already visited")
                 continue
-            
-            # if child is in the open list
-            openQueueNode = openQueue.hasNode(childNode)
+            # tentative_g_score := g_score[current] + dist_between(current,neighbor)
+            tentative_g_score = gScore[currentNode] + haversine(currentNode.position,neighbour.position)
+            # if neighbor not in openset or tentative_g_score < g_score[neighbor] 
+                # came_from[neighbor] := current
+                # g_score[neighbor] := tentative_g_score
+                # f_score[neighbor] := g_score[neighbor] + heuristic_cost_estimate(neighbor, goal)
+                # if neighbor not in openset
+                #     add neighbor to openset
+            if not openSet.contains(currentNode) or tentative_g_score < gScore[neighbour]:
+                cameFrom[neighbour] = currentNode
+                gScore[neighbour] = tentative_g_score
+                if not openSet.contains(neighbour):
+                    openSet.enqueue(neighbour,gScore[neighbour] + haversine(neighbour.position, endNode.position))
+    print("did not finish")
 
-            if openQueueNode is not None:
-                # print("This node is already in the PQ")
-                # if the child.g is higher than the openList node's g
-                if childNode.g() > openQueueNode.g():
-                    # print("The node in the PQ had a lower G")
-                    # continue to beginning of for loop
-                    continue
-            # add the child to the openList
-            # print("Adding this node to the PQ")
-            openQueue.enqueue(childNode)
-            
-    print("Did not finish.")
-    return backtrack(currentNode,startNode)[0]
+# # TODO: https://en.wikipedia.org/wiki/A*_search_algorithm#Pseudocode
+# # TODO: educative
+# # TODO: https://isaaccomputerscience.org/concepts/dsa_search_a_star?examBoard=all&stage=all
+# def astar(graph, startNode, endNode):
+#     # openSet := {start}
+#     openSet = utils.PriorityQueue()
+#     openSet.enqueue(
+#         startNode,
+#         haversine(startNode.position,endNode.position),
+#     )
+#     # cameFrom := an empty map
+#     cameFrom = {}
+#     # gScore := map with default value of Infinity
+#     gScore = {}
+#     # gScore[start] := 0
+#     gScore[startNode] = 0
+
+#     while not openSet.empty:
+#         # current := the node in openSet having the lowest fScore[] value
+#         currentNode = openSet.dequeue()
+
+#         # if current = goal
+#         if currentNode == endNode:
+#             # return reconstruct_path(cameFrom, current)
+#             print("Success")
+#             return
+#         # openSet.Remove(current)
+#         # handled by dequeue
+#         nbours = graph.getNeighbouringNodes(currentNode)
+#         print(len(nbours))
+#         # for each neighbor of current
+#         for neighbour in nbours:
+#             # tentative_gScore := gScore[current] + d(current, neighbor)
+#             tentative_gScore = gScore[currentNode] + haversine(currentNode.position, neighbour.position)
+#             if neighbour not in gScore.keys():
+#                 gScore[neighbour] = inf
+#             print("GSCORE",tentative_gScore)
+#             # if tentative_gScore < gScore[neighbor]
+#             if tentative_gScore < gScore[neighbour]:
+#                 # This path to neighbor is better than any previous one. Record it!
+#                 # cameFrom[neighbor] := current
+#                 cameFrom[neighbour] = currentNode
+#                 # gScore[neighbor] := tentative_gScore
+#                 gScore[neighbour] = tentative_gScore
+
+#                 # fScore[neighbor] := gScore[neighbor] + h(neighbor)
+#                 # if neighbor not in openSet
+#                 #     openSet.add(neighbor)
+
+#                 if openSet.contains(neighbour):
+#                     print("This node is already in the open set")
+#                     openSet.remove(neighbour)
+#                 openSet.enqueue(neighbour,gScore[neighbour] + haversine(neighbour.position,endNode.position))
+#     print("Failure")
+#     return None
 
 class pathfindingNode(Node):
     def __init__(self, xml, nodeElement, parentNode, g, h):
