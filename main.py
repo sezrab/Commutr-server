@@ -11,7 +11,7 @@ import random
 from debugUtils import timer
 
 visualise = True
-offline = True
+offline =   False
 
 sherborne = (50.950340,-2.520400) # lat, lon
 yeovil = (50.943647,-2.647176)
@@ -28,7 +28,7 @@ if offline:
 else:
     # rawXML = api.multipleBboxRoadQuery(sherborne,yeovil)
     print("Querying API")
-    rawXML = api.lineQuery(sherborne,yeovil)
+    rawXML = api.radiusQuery(yeovil,2)
     try:
         root = ET.fromstring(rawXML)
     except ValueError as e:
@@ -39,50 +39,68 @@ else:
 
 print("Finished getting data. Took",tmr,"seconds")
 
+print("\n"*2)
+
 aGraph = graph.Graph(root)
 
-print("Choosing two random points...")
+while True:
 
-a,b = random.choices(aGraph.junctionNodes,k=2)
+    print("Choosing two random points...")
 
-# print(len(aGraph.getNeighbouringNodes(aGraph.nodes[a])))
+    a,b = random.choices(aGraph.junctionNodes,k=2)
 
-# input("paused")
+    # a = '939851691'
 
-if visualise:
+    # print(len(aGraph.getNeighbouringNodes(aGraph.nodes[a])))
+
+    # input("paused")
+
+    print("\n"*2)
+
     tmr.reset()
-    print("Getting data ready for plot...")
+
+    print("Started pathfinding...")
+
+    # route = aGraph.buildRouteFromJunctions(pathfinding.astar(aGraph,nodes[0],nodes[1]))
+
+    route = pathfinding.aStar(aGraph,aGraph.nodes[a],aGraph.nodes[b])
+
+    print("Got route in",tmr,"seconds")
+
+    print("\n"*2)
+
     for way in aGraph.ways.values():
         x = []
         y = []
         for nodeID in way.nodeIDs:
-            lat,lon = aGraph.nodes[nodeID].position
+            if nodeID in aGraph.junctionNodes:
+                pos = aGraph.nodes[nodeID].position
+                # plt.scatter(*pos[::-1], s=2)
+                x.append(pos[1])
+                y.append(pos[0])
+        plt.plot(x,y)
+
+    # plt.scatter(*aGraph.nodes[a].position[::-1],s=100)
+
+    # for nb in aGraph.getNeighbouringNodes(aGraph.nodes[a]):
+        # plt.scatter(*nb.position[::-1],s=50)
+
+    # plt.savefig('nodesEdges.png')
+    # plt.show()
+
+    # quit()
+
+    if visualise:
+        print("Plotting...")
+
+        x = []
+        y = []
+
+        for node in route:
+            lat,lon = node.position
             x.append(lon)
             y.append(lat)
-        plt.plot(x,y,c='r')
-    print("Took",tmr,"seconds")
 
-tmr.reset()
+        plt.plot(x,y,c='b')
 
-print("Started pathfinding...")
-
-# route = aGraph.buildRouteFromJunctions(pathfinding.astar(aGraph,nodes[0],nodes[1]))
-
-route = pathfinding.astar(aGraph,aGraph.nodes[a],aGraph.nodes[b])
-
-print("Got route in",tmr,"seconds")
-
-if visualise:
-    print("Plotting...")
-
-    x = []
-    y = []
-
-    for node in route:
-        lat,lon = node.getPos()
-        x.append(lon)
-        y.append(lat)
-
-    plt.plot(x,y,c='b')
-
-    plt.show()
+        plt.show()

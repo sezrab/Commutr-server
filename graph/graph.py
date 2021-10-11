@@ -4,9 +4,16 @@ class Graph(object):
         ways = {way.attrib['id']:Way(way) for way in xml.findall('way')}
         nodes = {node.attrib['id']:Node(node) for node in xml.findall('node')}
 
-        # something is wrong here.
         junctions = {}
-
+        for nodeID in nodes.keys():
+                    for way in ways.values():
+                        if nodeID in [way.nodeIDs[0],way.nodeIDs[-1]]: # possibly only check first and last
+                            if nodeID in junctions.keys():
+                                if way.id not in junctions[nodeID]:
+                                    junctions[nodeID].append(way.id)
+                            else:
+                                junctions[nodeID] = [way.id]
+                
         for wayID in ways:
             way = ways[wayID]
             waysNodes = way.nodeIDs
@@ -21,16 +28,10 @@ class Graph(object):
                     # this node hasn't been registered as a junction yet,
                     # so register it
                     junctions[nodeID] = [wayID]
-
-        for nodeID in nodes.keys():
-            for way in ways.values():
-                if nodeID in [way.nodeIDs[0],way.nodeIDs[-1]]: # possibly only check first and last
-                    if nodeID in junctions.keys():
-                        if way.id not in junctions[nodeID]:
-                            junctions[nodeID].append(way.id)
-                    else:
-                        junctions[nodeID] = [way.id]
-        
+            for nodeID in waysNodes:
+                if nodeID in junctions.keys():
+                    if wayID not in junctions[nodeID]:
+                        junctions[nodeID].append(wayID)
         self.__junctions = junctions
         self.__ways = ways
         self.__nodes = nodes
@@ -54,17 +55,52 @@ class Graph(object):
 
     def getNeighbouringNodes(self,node):
         wayIDs = self.__junctions[node.id]
-
+        # print("This node is on",len(wayIDs),"ways")
         neighbours = []
 
         for wayID in wayIDs:
+            # print()
+            # print("WAY:",wayID)
             way = self.__ways[wayID]
+            # print("this way:",wayID)
+            # get nodes on this way that are also junctions
+
+            # print("way nodes",len(way.nodeIDs))
+            # print("junc node",len(self.junctionNodes))
 
             # https://stackoverflow.com/questions/1388818/how-can-i-compare-two-lists-in-python-and-return-matches
-            junctionsOnWay = set(way.nodeIDs).intersection(self.junctionNodes) # This answer has good algorithmic performance, as only one of the lists (shorter should be preferred) is turned into a set for quick lookup, and the other list is traversed looking up its items in the set
-            junctionsOnWay.remove(node.id)
+            # junctionsOnWay = list(set(way.nodeIDs).intersection(self.junctionNodes)) # This answer has good algorithmic performance, as only one of the lists (shorter should be preferred) is turned into a set for quick lookup, and the other list is traversed looking up its items in the set
+            
+            junctionsOnWay = []
+            for nodeID in way.nodeIDs:
+                if nodeID in self.junctionNodes:
+                    junctionsOnWay.append(nodeID)
+            
+            # this line appears to be causing inconsistencies
 
-            neighbours += junctionsOnWay
+            # print("juncs on way",len(junctionsOnWay))
+
+            # junctionsOnWay = list(set(way.nodeIDs) & set(self.junctionNodes))
+
+            # print("num juncs:",len(junctionsOnWay))
+            # remove self from neighbours
+            # junctionsOnWay.remove(node.id)
+
+            # below was wrong
+            # neighbours += junctionsOnWay
+
+            # get index in order of junctions on way
+            nodeOrderIndex = junctionsOnWay.index(node.id)
+            # print("node order index",nodeOrderIndex)
+            # print(junctionsOnWay)
+            # find adjacent junctions
+            adjacent = []
+            if nodeOrderIndex < len(junctionsOnWay) - 1:
+                adjacent.append(junctionsOnWay[nodeOrderIndex+1])
+            if nodeOrderIndex > 0:
+                adjacent.append(junctionsOnWay[nodeOrderIndex-1])
+            
+            neighbours += adjacent
 
         return list(map(lambda x: self.nodes[x],neighbours))
 
@@ -81,6 +117,8 @@ class Node(object):
     def position(self):
         return float(self.__nodeElement.attrib['lat']),float(self.__nodeElement.attrib['lon'])
 
+    def __str__(self) -> str:
+        return str(self.id) + " @ " + str(self.position)
 
 
 class Way(object):

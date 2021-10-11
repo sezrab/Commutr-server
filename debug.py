@@ -1,21 +1,23 @@
 from sys import path
 from graph import graph
 from lxml import etree as ET
-import random
-
+import matplotlib.pyplot as plt
 from graph import pathfinding
 
 root = ET.parse('map.osm.xml')
 g = graph.Graph(root)
 
-randJunc = g.nodes[random.choice(g.junctionNodes)]
+way = g.ways["145071574"]
 
-print(randJunc.id)
-print("Has neighbours:")
-print(g.getNeighbouringNodes(randJunc))
+node = g.nodes["939851692"]
 
-print(g.ways[g.junctions[randJunc.id][0]].wayType)
+nbours = g.getNeighbouringNodes(node)
 
-print("testing pathfinding")
+print()
 
-pathfinding.astar(g,randJunc,g.nodes[random.choice(g.junctionNodes)])
+print("neighbour count:",len(nbours))
+
+# for n in g.getNeighbouringNodes(node):
+#     print(n)
+
+plt.show()

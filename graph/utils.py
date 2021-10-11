@@ -37,3 +37,5 @@ class PriorityQueue(object):
     def dequeue(self):
         return self.__queue.pop(0)[0]
     
+    def __str__(self) -> str:
+        return str(list(map(lambda x: x[1], self.__queue)))
