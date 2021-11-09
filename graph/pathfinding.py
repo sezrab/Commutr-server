@@ -13,9 +13,10 @@ def rebuildRoute(cameFrom,start,end):
     
     return route[::-1]
 
-def aStar(graph,startNode,endNode):
+def aStar(graph,startNode,endNode,costMap,verbose=False):
 
-    print("Starting with",startNode)
+    if verbose:
+        print("Starting with",startNode)
 
     # let the openList equal empty list of nodes
     openSet = utils.PriorityQueue()
@@ -41,21 +42,24 @@ def aStar(graph,startNode,endNode):
             # end reached
         
         if currentNode == endNode:
-            print("Completed")
+            if verbose:
+                print("Completed")
             return rebuildRoute(cameFrom,startNode,endNode)
     
         # let the children of the currentNode equal the adjacent nodes
         neighbours = graph.getNeighbouringNodes(currentNode)
-        print()
-        print("NODE:",currentNode)
-        # print(closedSet)
-        print("-"*10)
-        print("Node has",len(neighbours),"neighbours")
-        print("Node is",haversine(currentNode.position,endNode.position),"m from the end")
+        if verbose:
+            print()
+            print("NODE:",currentNode)
+            # print(closedSet)
+            print("-"*10)
+            print("Node has",len(neighbours),"neighbours")
+            print("Node is",haversine(currentNode.position,endNode.position),"m from the end")
         # for each child in the children
         for neighbour in neighbours:
-            print("Neighbour:")
-            print("   This neighbour is",neighbour)
+            if verbose:
+                print("Neighbour:")
+                print("   This neighbour is",neighbour)
 
             # if child is in the closedList
                 # continue
@@ -67,12 +71,13 @@ def aStar(graph,startNode,endNode):
             # child.f = child.g + child.h
             
             h = haversine(endNode.position,neighbour.position)
-            g = gCosts[currentNode] + haversine(currentNode.position,neighbour.position)
+            g = gCosts[currentNode] + (haversine(currentNode.position,neighbour.position) * graph.edgeCost(costMap,currentNode.id,neighbour.id))
             f = g + h
 
             if neighbour in closedSet.keys():
                 if (closedSet[neighbour] < f):
-                    print("   This neigbour is in the closed set.")
+                    if verbose:
+                        print("   This neigbour is in the closed set.")
                     # if a node with the same position as successor  is in the CLOSED list which has a lower f than successor,
                     # skip this successor otherwise, add the node to the open list end (for loop)
                     continue
@@ -85,7 +90,8 @@ def aStar(graph,startNode,endNode):
 
             if openSet.contains(neighbour):
                 if g > gCosts[neighbour]:
-                    print("   (this node is already in the open set... continue)")
+                    if verbose:
+                        print("   (this node is already in the open set... continue)")
                     continue
                 else:
                     openSet.remove(neighbour)
@@ -97,5 +103,5 @@ def aStar(graph,startNode,endNode):
             # print(openSet)
             cameFrom[neighbour] = currentNode
             openSet.enqueue(neighbour,f)
-            
-    print("Did not finish")
+    if verbose:
+        print("Did not finish")

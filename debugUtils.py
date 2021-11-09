@@ -11,4 +11,6 @@ class timer():
         return time.time() - self.__startTime
 
     def __str__(self) -> str:
-        return "{:.2f}".format(self.getTime())
+        s = "{:.2f}".format(self.getTime())
+        self.reset()
+        return s

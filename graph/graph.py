@@ -1,3 +1,7 @@
+from math import cos
+from maps.utils import haversine
+
+
 class Graph(object):
 
     def __init__(self,xml):
@@ -7,7 +11,7 @@ class Graph(object):
         junctions = {}
         for nodeID in nodes.keys():
                     for way in ways.values():
-                        if nodeID in [way.nodeIDs[0],way.nodeIDs[-1]]: # possibly only check first and last
+                        if nodeID in [way.nodeIDs[0],way.nodeIDs[-1]]:
                             if nodeID in junctions.keys():
                                 if way.id not in junctions[nodeID]:
                                     junctions[nodeID].append(way.id)
@@ -36,6 +40,24 @@ class Graph(object):
         self.__ways = ways
         self.__nodes = nodes
 
+    def getNodeWayTypes(self,nodeID):
+        wayTypes = []
+        for wayID in self.__junctions[nodeID]:
+            wayTypes.append(self.__ways[wayID].wayType)
+        return wayTypes
+
+    def edgeCost(self, costMap, *nodeIDs):
+        allWayTypes = []
+        for nodeID in nodeIDs:
+            allWayTypes.extend(self.getNodeWayTypes(nodeID))
+        totalCost = 0
+        for wayType in allWayTypes:
+            if wayType in costMap.keys():
+                totalCost += costMap[wayType]
+            else:
+                totalCost += costMap[None] # unknown way type cost
+        return totalCost/len(allWayTypes)
+
 
     @property
     def ways(self):
@@ -52,6 +74,18 @@ class Graph(object):
     @property
     def junctionNodes(self):
         return list(self.__junctions.keys())
+
+    def getClosestNode(self, latLon):
+        smallestDistance = None
+        closestNodeID = None
+        for nodeID in self.junctionNodes:
+            node = self.nodes[nodeID]
+            d = haversine(node.position,latLon)
+            if smallestDistance is None or d < smallestDistance:
+                closestNodeID = nodeID
+                smallestDistance = d
+        return closestNodeID
+
 
     def getNeighbouringNodes(self,node):
         wayIDs = self.__junctions[node.id]
