@@ -16,47 +16,59 @@ app = Flask(__name__)
 # def index():
 #     return "Hello, World!"
 
-@app.route('/', methods=['POST','GET'])
+@app.route('/', methods=['POST'])
 def result():
-    aLat = request.form['aLat']
-    aLon = request.form['aLon']
-    bLat = request.form['bLat']
-    bLon = request.form['bLon']
+    print()
+    print("+ New request")
+    try:
+        aLat,aLon = request.form['a'].split(",")
+        print(" * Received a")
+        bLat,bLon = request.form['b'].split(",")
+        print(" * Received b")
+        mode = request.form['mode']
+        print(" * Received mode")
+    except:
+        print("[X] Invalid arguments")
+        return "Error: Invalid arguments"
+    try:
+        costMap = costs.costMaps[mode]
+        print("   * Got cost map")
+    except:
+        print("[X] Cost map mode does not exist")
+        return "Error: No such transport mode", 400 # bad request
 
-    mode = request.form['mode']
-    costMap = costs.costMaps[mode]
-
-    a = (float(aLat),float(aLon))
-    b = (float(bLat),float(bLon))
-    root = ET.fromstring(api.lineQuery(a,b))
+    aPos = (float(aLat),float(aLon))
+    bPos = (float(bLat),float(bLon))
+    print()
+    root = ET.fromstring(api.lineQuery(aPos,bPos))
+    print(" * Parsed XML")
 
     g = graph.Graph(root)
+    print(" * Processed graph")
+    print()
+    aNode = g.nodes[g.getClosestNode(aPos)]
+    bNode = g.nodes[g.getClosestNode(bPos)]
+    print(" * Got terminal nodes")
 
-    a = g.getClosestNode(a)
-    b = g.getClosestNode(b)
+    print(" * Finding shortest path")
+    try:
+        route = pathfinding.aStar(g,aNode,bNode,costMap)
+        if route == None:
+            print("[X] No path between these points")
+            return "Error: No path between these points", 400
+        route = g.redetail(route)
+        route = g.trim(route, aPos, bPos)
+    except Exception as e:
+        print("[X] Unexpected error finding path:",e)
+        return "Error: Something went wrong while finding path", 500 # internal server error?
+    print(" * Found shortest path")
 
-    # closestA = None
-    # distanceA = inf
-    # closestB = None
-    # distanceB = inf
-
-    # get closest nodes to a and b
-    # for junctionNodeID in g.junctionNodes:
-    #     jNode = g.nodes[junctionNodeID]
-    #     thisADistance = haversine(jNode.position, a)
-    #     thisBDistance = haversine(jNode.position, b)
-    #     if thisADistance < distanceA:
-    #         closestA = jNode
-    #         distanceA = thisADistance
-    #     if thisBDistance < distanceB:
-    #         closestB = jNode
-    #         distanceB = thisBDistance
-
-    route = pathfinding.aStar(g,a,b,costMap)
     route = [node.position for node in route]
     
     jsonDat = {"route":route}
 
-    return json.dumps(jsonDat)
+    print("\n+ Request complete\n")
+
+    return json.dumps(jsonDat), 200 # successful response
 
 app.run(host='0.0.0.0', port=80)

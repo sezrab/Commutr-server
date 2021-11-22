@@ -46,6 +46,28 @@ class Graph(object):
             wayTypes.append(self.__ways[wayID].wayType)
         return wayTypes
 
+    def redetail(self, route):
+        detailedRoute = []
+        for index in range(len(route)-1):
+            juncNode = route[index]
+            ways = self.junctions[juncNode.id]
+            for wayID in ways:
+                way = self.ways[wayID]
+                if route[index+1].id in way.nodeIDs:
+                    aIndex = way.nodeIDs.index(route[index].id)
+                    bIndex = way.nodeIDs.index(route[index+1].id)
+                    if bIndex >= aIndex:
+                        detailedRoute += [self.nodes[nid] for nid in way.nodeIDs[aIndex:bIndex]]
+                    else:
+                        detailedRoute += [self.nodes[nid] for nid in way.nodeIDs[bIndex:aIndex][::-1]]
+        return detailedRoute
+
+    def trim(self,route,start,end):
+        routeIDMap = {node.id:node for node in route}
+        closestToStart = self.nodes[self.getClosestNode(start,routeIDMap)]
+        closestToEnd = self.nodes[self.getClosestNode(end,routeIDMap)]
+        return route[route.index(closestToStart):route.index(closestToEnd)]
+
     def edgeCost(self, costMap, *nodeIDs):
         allWayTypes = []
         for nodeID in nodeIDs:
@@ -75,10 +97,12 @@ class Graph(object):
     def junctionNodes(self):
         return list(self.__junctions.keys())
 
-    def getClosestNode(self, latLon):
+    def getClosestNode(self, latLon, nodes=None):
         smallestDistance = None
         closestNodeID = None
-        for nodeID in self.junctionNodes:
+        if nodes == None:
+            nodes = self.junctionNodes
+        for nodeID in nodes:
             node = self.nodes[nodeID]
             d = haversine(node.position,latLon)
             if smallestDistance is None or d < smallestDistance:

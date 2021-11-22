@@ -43,6 +43,51 @@ cycling = {
     None: 10,
 }
 
+foot = {
+    'motorway': 10000,
+    'motorway_link': 10000,
+    'motorway_junction': 10000,
+
+    'busway': 10000,
+    'bus_guideway': 10000,
+    
+    'escape': 10000,
+    'raceway': 10000,
+    
+    'trunk': 200,
+    'trunk_link':200,
+    
+    'primary': 100,
+    'primary_link': 100,
+    
+    'secondary': 50,
+    'secondary_link': 50,
+    
+    'living_street': 1,
+    'residential': 1,
+    
+    'tertiary': 20,
+    'tertiary_link': 20,
+    
+    'service': 10,
+    
+    'pedestrian': 1,
+    
+    'track': 1,
+    'footway': 1,
+    'bridleway': 1,
+    'steps': 1,
+    'path': 1,
+    'cycleway': 5,
+
+    'construction': 10,
+    'corridor': 1,
+    'road': 10,
+    'unclassified': 10,
+
+    None: 10,
+}
+
 mtb = {
     'motorway': 10000,
     'motorway_link': 10000,
@@ -137,5 +182,6 @@ car = {
 costMaps = {
     'mtb':mtb,
     'cycling':cycling,
+    'foot':foot,
     'car':car,
 }

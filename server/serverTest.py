@@ -2,15 +2,12 @@ import requests
 
 a = input("a: ")
 b = input("b: ")
-
-a1,a2 = a.split(",")
-b1,b2 = b.split(",")
+mode = input("mode: ")
 
 dat = {
-    'aLat':a1,
-    'aLon':a2,
-    'bLat':b1,
-    'bLon':b2,
+    'a':a,
+    'b':b,
+    'mode':mode,
 }
 
 r = requests.post("http://localhost",data=dat)
