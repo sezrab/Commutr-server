@@ -10,12 +10,12 @@ from maps import api
 
 from debugUtils import timer
 
-visualise = False
-gpx = True
+visualise = True
+gpx = False
 offline = False
 
-ptA = (50.942665,-2.511660)
-ptB = (50.863864,-2.966540)
+ptA = (50.947784,-2.516896)
+ptB = (50.996700,-2.522039)
 
 print("\n--- Cost Maps ---")
 
@@ -37,9 +37,21 @@ totalTime = timer()
 print("Getting data...")
 
 # print("Querying API")
-rawXML = api.lineQuery(ptA, ptB)
+rawXML = api.request(api.lineQuery(ptA, ptB),True)
+
+print("Got data")
+print("Parsing...")
+dtd = ET.DTD(open("osm.dtd"))
+
 try:
     root = ET.fromstring(rawXML)
+    valid = dtd.validate(root)
+    if valid:
+        print("OSM data is VALID")
+    else:
+        print("! OSM data is INVALID")
+        print(dtd.error_log.filter_from_errors())
+        raise(ValueError)
 except ValueError as e:
     print(rawXML[:500])
     print("...")

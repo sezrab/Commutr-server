@@ -1,0 +1,23 @@
+<!ELEMENT osm ((note|meta|node|way)+)>
+<!ATTLIST osm version            CDATA #FIXED "0.6">
+<!ATTLIST osm generator          CDATA #IMPLIED>
+
+<!ELEMENT note (#PCDATA)>
+
+<!ELEMENT meta EMPTY>
+<!ATTLIST meta osm_base          CDATA #REQUIRED>
+
+<!ELEMENT node (tag*)>
+<!ATTLIST node id                CDATA #IMPLIED>
+<!ATTLIST node lat               CDATA #REQUIRED>
+<!ATTLIST node lon               CDATA #REQUIRED>
+
+<!ELEMENT way ((tag|nd)*)>
+<!ATTLIST way id                 CDATA #IMPLIED>
+
+<!ELEMENT nd EMPTY>
+<!ATTLIST nd ref                 CDATA #REQUIRED>
+
+<!ELEMENT tag EMPTY>
+<!ATTLIST tag k                  CDATA #REQUIRED>
+<!ATTLIST tag v                  CDATA #REQUIRED>

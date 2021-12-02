@@ -1,6 +1,8 @@
 earthRadius = 6378100
 apiURL = "http://overpass-api.de/api/interpreter"
 
+allowedRetries = 0
+
 wayQueryLine = "way[\"highway\"]({},{},{},{});"
 
 blankRoadQuery = """[out:xml][timeout:25];

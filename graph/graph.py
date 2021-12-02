@@ -5,10 +5,15 @@ from maps.utils import haversine
 class Graph(object):
 
     def __init__(self,xml):
+        # ways is a dictionary that maps way ids to way objects
         ways = {way.attrib['id']:Way(way) for way in xml.findall('way')}
+
+        # nodes is a dictionary that maps node ids to node objects
         nodes = {node.attrib['id']:Node(node) for node in xml.findall('node')}
 
+        # junctions is a dictionary that maps node ids to all ways on which the corresponding node lies
         junctions = {}
+
         for nodeID in nodes.keys():
                     for way in ways.values():
                         if nodeID in [way.nodeIDs[0],way.nodeIDs[-1]]:
@@ -16,8 +21,7 @@ class Graph(object):
                                 if way.id not in junctions[nodeID]:
                                     junctions[nodeID].append(way.id)
                             else:
-                                junctions[nodeID] = [way.id]
-                
+                                junctions[nodeID] = [way.id]        
         for wayID in ways:
             way = ways[wayID]
             waysNodes = way.nodeIDs
@@ -36,6 +40,7 @@ class Graph(object):
                 if nodeID in junctions.keys():
                     if wayID not in junctions[nodeID]:
                         junctions[nodeID].append(wayID)
+
         self.__junctions = junctions
         self.__ways = ways
         self.__nodes = nodes
