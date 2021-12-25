@@ -16,7 +16,7 @@ app = Flask(__name__)
 # def index():
 #     return "Hello, World!"
 
-@app.route('/', methods=['POST'])
+@app.route('/route', methods=['POST'])
 def result():
     print()
     print("+ New request")
@@ -27,7 +27,8 @@ def result():
         print(" * Received b")
         mode = request.form['mode']
         print(" * Received mode")
-    except:
+    except Exception as e:
+        print(e)
         print("[X] Invalid arguments")
         return "Error: Invalid arguments"
     try:
@@ -40,7 +41,11 @@ def result():
     aPos = (float(aLat),float(aLon))
     bPos = (float(bLat),float(bLon))
     print()
-    root = ET.fromstring(api.lineQuery(aPos,bPos))
+    try:
+        lq = api.lineQuery(aPos,bPos);
+        root = ET.fromstring(api.request(api.lineQuery(aPos,bPos)))
+    except:
+        print(lq)
     print(" * Parsed XML")
 
     g = graph.Graph(root)

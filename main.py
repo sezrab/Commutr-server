@@ -14,8 +14,8 @@ visualise = True
 gpx = False
 offline = False
 
-ptA = (50.947784,-2.516896)
-ptB = (50.996700,-2.522039)
+ptA = (50.949333,-2.507717)
+ptB = (50.946953,-2.515527)
 
 print("\n--- Cost Maps ---")
 
@@ -37,7 +37,9 @@ totalTime = timer()
 print("Getting data...")
 
 # print("Querying API")
-rawXML = api.request(api.lineQuery(ptA, ptB),True)
+q = api.lineQuery(ptA, ptB)
+print(q)
+rawXML = api.request(q,True)
 
 print("Got data")
 print("Parsing...")
@@ -83,7 +85,6 @@ print("Initialising Graph...")
 aGraph = graph.Graph(root)
 
 print("Initialised graph in", tmr, "seconds")
-
 
 print("Finding terminal nodes...")
 

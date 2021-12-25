@@ -22,6 +22,7 @@ def lineQueryString(bboxes):
 def lineQuery(a,b):
     distance = utils.haversine(a,b)
     bearing = utils.bearing(a,b)
+    print(bearing)
 
     squareSide = max(distance/10,2000)
     nSquares = ceil(distance/squareSide)
