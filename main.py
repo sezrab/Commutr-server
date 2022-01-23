@@ -14,8 +14,8 @@ visualise = True
 gpx = False
 offline = False
 
-ptA = (50.949333,-2.507717)
-ptB = (50.946953,-2.515527)
+ptA = (50.943136,-2.511581)
+ptB = (50.987201,-2.539558)
 
 print("\n--- Cost Maps ---")
 

@@ -11,30 +11,35 @@ def radiusQuery(center,radius):
     # radius is a float in meters
 
     lat,lon = center
-    return request(constants.roadQuery.format(radius*1000,lat,lon,))
+    return constants.roadQuery.format(radius,lat,lon,)
 
 def lineQueryString(bboxes):
     # bboxes is a 2D list, where second dimensional lists are in the format [southMostLat,westMostLon,northMostLat,eastMostLon]
-    
+    for queries in bboxes:
+        print(len(queries))
     queries = [constants.wayQueryLine.format(*bbox) for bbox in bboxes]
     return constants.blankRoadQuery.format("\n".join(queries))
 
 def lineQuery(a,b):
     distance = utils.haversine(a,b)
     bearing = utils.bearing(a,b)
-    print(bearing)
 
     squareSide = max(distance/10,2000)
     nSquares = ceil(distance/squareSide)
-
+    print(nSquares)
     squareBboxes = []
 
-    previousCentre = a
-    for i in range(nSquares):
-        newCentre = utils.displace(previousCentre,squareSide,bearing)
-        previousCentre = newCentre
-        squareBboxes.append(utils.bBoxSquare(newCentre,squareSide))
+    if nSquares == 1:
+        return radiusQuery(((a[0]+b[0])/2,(a[1]+b[1])/2), squareSide/2)
 
+    previousCentre = a
+    for i in range(nSquares+1):
+        squareBboxes.append(utils.bBoxSquare(previousCentre,squareSide))
+        newCentre = utils.displace(previousCentre,squareSide,utils.bearing(previousCentre, b))
+        previousCentre = newCentre
+        
+    print(squareBboxes)
+    
     return lineQueryString(squareBboxes)
 
 # constants.apiURL: "http://overpass-api.de/api/interpreter"
