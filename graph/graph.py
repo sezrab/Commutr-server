@@ -14,32 +14,63 @@ class Graph(object):
         # junctions is a dictionary that maps node ids to all ways on which the corresponding node lies
         junctions = {}
 
-        for nodeID in nodes.keys():
-                    for way in ways.values():
-                        if nodeID in [way.nodeIDs[0],way.nodeIDs[-1]]:
-                            if nodeID in junctions.keys():
-                                if way.id not in junctions[nodeID]:
-                                    junctions[nodeID].append(way.id)
-                            else:
-                                junctions[nodeID] = [way.id]        
-        for wayID in ways:
-            way = ways[wayID]
-            waysNodes = way.nodeIDs
-            ends = [waysNodes[0],waysNodes[-1]]
-            for nodeID in ends:
+        # FOR EACH way IN graph.ways:
+        for way in ways.values():
+            terminalNodes = (way.nodeIDs[0], way.nodeIDs[-1]) # start and end nodes
+            # search start and end nodes in every way
+
+            #FOR EACH node IN nodes:
+            for nodeID in terminalNodes:
+                # IF node IN junctions.keys:
                 if nodeID in junctions.keys():
-                    # this node is a junction already
-                    # add this way id to the list if it is not already
-                    if wayID not in junctions[nodeID]:
-                        junctions[nodeID].append(wayID)
+                    # IF way NOT IN junctions[node]:
+                    if way not in junctions[nodeID]:
+                        junctions[nodeID].append(way.id)
                 else:
-                    # this node hasn't been registered as a junction yet,
-                    # so register it
-                    junctions[nodeID] = [wayID]
-            for nodeID in waysNodes:
+                    junctions[nodeID] = [way.id]
+                    
+        # FOR EACH way IN graph.ways:
+        for way in ways.values():
+            # nodes = way.nodes[1:-1]
+            inbetweenNodes = way.nodeIDs[1:-1]
+            # search every node in every way (apart from start and end nodes)
+            # FOR EACH node IN nodes:
+            for nodeID in inbetweenNodes:
+                # IF node IN junctions.keys:
                 if nodeID in junctions.keys():
-                    if wayID not in junctions[nodeID]:
-                        junctions[nodeID].append(wayID)
+                    # if this is node is on a junction, but this way is not marked as being on this junction
+                    # IF way NOT IN junctions[node]:
+                    if way not in junctions[nodeID]:
+                        junctions[nodeID].append(way.id)
+
+        # below is old unoptimised junction node code
+
+        # for nodeID in nodes.keys():
+        #             for way in ways.values():
+        #                 if nodeID in [way.nodeIDs[0],way.nodeIDs[-1]]:
+        #                     if nodeID in junctions.keys():
+        #                         if way.id not in junctions[nodeID]:
+        #                             junctions[nodeID].append(way.id)
+        #                     else:
+        #                         junctions[nodeID] = [way.id]        
+        # for wayID in ways:
+        #     way = ways[wayID]
+        #     waysNodes = way.nodeIDs
+        #     ends = [waysNodes[0],waysNodes[-1]]
+        #     for nodeID in ends:
+        #         if nodeID in junctions.keys():
+        #             # this node is a junction already
+        #             # add this way id to the list if it is not already
+        #             if wayID not in junctions[nodeID]:
+        #                 junctions[nodeID].append(wayID)
+        #         else:
+        #             # this node hasn't been registered as a junction yet,
+        #             # so register it
+        #             junctions[nodeID] = [wayID]
+        #     for nodeID in waysNodes:
+        #         if nodeID in junctions.keys():
+        #             if wayID not in junctions[nodeID]:
+        #                 junctions[nodeID].append(wayID)
 
         self.__junctions = junctions
         self.__ways = ways
