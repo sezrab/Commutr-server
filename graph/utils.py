@@ -1,6 +1,3 @@
-from math import sin,cos,atan2,sqrt,radians
-from maps.constants import earthRadius
-
 class PriorityQueue(object):
     def __init__(self):
         self.__queue = []

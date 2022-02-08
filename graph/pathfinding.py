@@ -4,6 +4,16 @@ from maps.utils import haversine
 from . import utils
 
 def rebuildRoute(cameFrom,start,end):
+    """Uses the cameFrom dictionary of aStar() to backtrack from the end node to the start node, returning the route in order
+
+    Args:
+        cameFrom (dict): cameFrom dictionary from the aStar function
+        start (node): Start node of the pathfinding
+        end (node): End node of the pathfinding
+
+    Returns:
+        list: The route, in order of start node to finish node
+    """
     route = []
     
     prev = cameFrom[end]
@@ -97,10 +107,8 @@ def aStar(graph,startNode,endNode,costMap,verbose=False):
                     openSet.remove(neighbour)
                 
             # add the child to the openList
-
             
             gCosts[neighbour] = g
-            # print(openSet)
             cameFrom[neighbour] = currentNode
             openSet.enqueue(neighbour,f)
     if verbose:
