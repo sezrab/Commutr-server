@@ -15,18 +15,14 @@ def radiusQuery(center,radius):
 
 def lineQueryString(bboxes):
     # bboxes is a 2D list, where second dimensional lists are in the format [southMostLat,westMostLon,northMostLat,eastMostLon]
-    for queries in bboxes:
-        print(len(queries))
     queries = [constants.wayQueryLine.format(*bbox) for bbox in bboxes]
     return constants.blankRoadQuery.format("\n".join(queries))
 
 def lineQuery(a,b):
     distance = utils.haversine(a,b)
-    bearing = utils.bearing(a,b)
 
     squareSide = max(distance/10,2000)
     nSquares = ceil(distance/squareSide)
-    print(nSquares)
     squareBboxes = []
 
     if nSquares == 1:
@@ -37,9 +33,7 @@ def lineQuery(a,b):
         squareBboxes.append(utils.bBoxSquare(previousCentre,squareSide))
         newCentre = utils.displace(previousCentre,squareSide,utils.bearing(previousCentre, b))
         previousCentre = newCentre
-        
-    print(squareBboxes)
-    
+            
     return lineQueryString(squareBboxes)
 
 # constants.apiURL: "http://overpass-api.de/api/interpreter"

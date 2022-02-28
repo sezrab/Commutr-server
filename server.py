@@ -3,7 +3,6 @@ from graph import graph, costs
 from graph import pathfinding
 import matplotlib.pyplot as plt
 from lxml import etree as ET
-from math import inf
 from maps import api
 import json
 

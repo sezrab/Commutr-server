@@ -1,5 +1,3 @@
-from os import altsep
-
 from maps.utils import haversine
 from . import utils
 
@@ -16,6 +14,8 @@ def rebuildRoute(cameFrom,start,end):
     """
     route = []
     
+    assert(start in cameFrom.values())
+
     prev = cameFrom[end]
     while prev != start:
         route.append(prev)
@@ -28,8 +28,9 @@ def aStar(graph,startNode,endNode,costMap,verbose=False):
     if verbose:
         print("Starting with",startNode)
 
-    # let the openList equal empty list of nodes
+    # let the openList equal empty PRIORITY QUEUE of nodes
     openSet = utils.PriorityQueue()
+    
     # let the closedList equal empty list of nodes
     closedSet = {}
 
