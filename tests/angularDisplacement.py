@@ -1,5 +1,3 @@
-from ast import ExtSlice
-from traceback import print_tb
 from maps import utils
 
 def test():
@@ -13,7 +11,7 @@ def test():
 
     accuracy = 100 * measuredBearing/displacementBearing
     
-    if accuracy >= 90:
+    if accuracy >= 99:
         print("Angular dispalcement test passed")
     else:
         raise("Angular displacement test failed")

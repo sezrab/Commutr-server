@@ -43,6 +43,10 @@ cycling = {
     None: 10,
 }
 
+flat = {
+    None: 1
+}
+
 foot = {
     'motorway': 10000,
     'motorway_link': 10000,
@@ -184,4 +188,5 @@ costMaps = {
     'cycling':cycling,
     'foot':foot,
     'car':car,
+    'flat':flat,
 }

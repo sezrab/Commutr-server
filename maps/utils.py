@@ -5,6 +5,15 @@ from . import constants
 # create a method that will make d/r square bboxes on a straight line
 
 def bBoxSquare(centre,side):
+    """Create a square bounding box in the format latitude (southmost), longitude (westmost), latitude (northmost), longitude (eastmost)
+
+    Args:
+        centre (tuple): Centre of the square
+        side (float): Side length of the square
+
+    Returns:
+        list [lat,lon,lat,lon]
+    """
     r = side/2
     north = displace(centre, r, 0)
     east = displace(centre, r, 90)
@@ -12,55 +21,26 @@ def bBoxSquare(centre,side):
     west = displace(centre, r, 270)
     return south[0],west[1],north[0],east[1]
 
-def bBox(start,end,width):
-    # something is not working
-    lat1,lon1 = start
-    lat2,lon2 = end
-
-    maxLat = max(lat1,lat2)
-    minLat = min(lat1,lat2)
-
-    maxLon = max(lon1,lon2)
-    minLon = min(lon1,lon2)
-
-    meanLat = (maxLat+minLat)/2
-    meanLon = (maxLon+minLon)/2
-
-    print("Max min lat:",maxLat,minLat)
-    print("Max min lon:",minLon,maxLon)
-
-    horizontalDistance = haversine((maxLat,meanLon),(minLat,meanLon))
-    verticalDistance = haversine((meanLat,minLon),(meanLat,maxLon))
-
-    print(horizontalDistance,verticalDistance)
-
-    if horizontalDistance > verticalDistance:
-        north = displace((meanLat,maxLon),2000,0)[1]
-        south = displace((meanLat,minLon),2000,180)[1]
-        east = maxLat
-        west = minLat
-    else:
-        east = displace((maxLat,meanLon),2000,90)[0]
-        west = displace((minLon,meanLon),2000,270)[0]
-        north = maxLon
-        south = minLon
-
-    # there is not much documentation for this,
-    # but it should follow the format
-    # left,bottom,right,top
-    
-    return west,south,east,north
-
 def haversine(a, b):
-    '''
-    determines the great-circle distance between two GPS points
+    """Determines the great-circle distance between two GPS points
     https://en.wikipedia.org/wiki/Haversine_formula
-    '''
+
+    Args:
+        a (tuple): (lat,lon) 
+        b (tuple): (lat,lon)
+
+    Returns:
+        float: distance
+    """
+
+    # decimal degrees to radians
     lat1, long1, lat2, long2 = map(radians, [a[0], a[1], b[0], b[1]])
     
+    # get difference between latitudes and longitudes of a and b, 
     dlon = long2 - long1
     dlat = lat2 - lat1
     
+    # use haversine formula
     a = (sin(dlat/2))**2 + cos(lat1) * cos(lat2) * (sin(dlon/2))**2
     c = 2 * atan2(sqrt(a), sqrt(1-a))
     d = c * constants.earthRadius
@@ -83,6 +63,17 @@ def haversine(a, b):
 #     return lat+east, lon+north
 
 def displace(latlon, distance, bearing):
+    """Displace a lat,lon point by a distance due to a given angle
+    See test @ tests/angularDisplacement.py
+
+    Args:
+        latlon (tuple): Point to displace
+        distance (float): Distance to displace by (m)
+        bearing (float): Bearing to displace by (degrees)
+
+    Returns:
+        tuple: The displaced point
+    """
     lat1,lon1 = map(radians,latlon)
     bearing = radians(bearing)
     lat2 = asin(sin(lat1)*cos(distance/constants.earthRadius) +
@@ -124,21 +115,30 @@ def displace(latlon, distance, bearing):
 #     return tc1
 
 def bearing(a,b):
-    '''
-    from https://stackoverflow.com/a/18738281
-    '''
+    """Measures the bearing between two points
+    See test @ tests/angularDisplacement.py
 
+    https://stackoverflow.com/a/18738281
+    
+    Args:
+        a (tuple): First point (lat,lon)
+        b (tuple): Second point (lat,lon)
+
+    Returns:
+        float: Bearing (degrees)
+    """
+    
     lat1, lon1 = map(radians,a)
     lat2, lon2 = map(radians,b)
 
-    dLon = (lon2 - lon1);
+    dLon = (lon2 - lon1)
 
-    y = sin(dLon) * cos(lat2);
-    x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
+    y = sin(dLon) * cos(lat2)
+    x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
 
-    bearing = atan2(y, x);
+    bearing = atan2(y, x)
 
-    bearing = degrees(bearing);
-    bearing = (bearing + 360) % 360;
+    bearing = degrees(bearing)
+    bearing = (bearing + 360) % 360
 
-    return bearing;
+    return bearing
