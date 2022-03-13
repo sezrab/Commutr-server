@@ -103,7 +103,7 @@ def result():
     # convert list to json
     jsonDat = {"route":route}
 
-    print("\n+ Request complete\n")
+    print("\n[+] Request complete\n")
 
     # return json, success code 200
     return json.dumps(jsonDat), 200 # successful response

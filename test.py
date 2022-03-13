@@ -10,15 +10,25 @@ from maps import api
 
 from debugUtils import timer
 
-from tests import angularDisplacement
+from maps import angularDisplacementTest
+from maps.utils import haversine
 
 visualise = True # option to visualise route & graph with matplotlib
 gpx = True # option to export to gpx file
 # offline = False
 
 # points to find path between
-ptA = (50.946227,-2.516823)
-ptB = (51.024550,-2.532081)
+# ptA = (50.946227,-2.516823)
+# ptB = (51.024550,-2.532081)
+
+def getCoordinates():
+    return tuple(map(float,input('point: ').split(",")))
+
+ptA = getCoordinates()
+ptB = getCoordinates()
+
+dist = haversine(ptA,ptB)
+print("The nodes are",dist,"m apart")
 
 # choose travel mode for pathfinding costs
 print("\n--- Cost Maps ---")
@@ -33,7 +43,7 @@ chosenCost = list(costs.costMaps.values())[n-1]
 print()
 
 # run angular displacement test
-angularDisplacement.test()
+angularDisplacementTest.test()
 
 print()
 
@@ -115,7 +125,7 @@ route = aGraph.redetail(route)
 route = aGraph.trim(route, ptA, ptB)
 
 print("Detailed route in", tmr, "seconds")
-print("Total calculation time was", totalTime, "seconds")
+print("Total data download + calculation time was", totalTime, "seconds")
 print()
 
 # define on-click event for matplotlib window

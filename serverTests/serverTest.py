@@ -1,3 +1,6 @@
+# to be run on the same machine running the server code: test.py
+# simply indicates whether or not the server is working
+
 import requests
 
 a = input("a: ")
