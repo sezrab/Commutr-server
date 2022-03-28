@@ -14,16 +14,32 @@ def rebuildRoute(cameFrom,start,end):
     """
     route = []
     
+    # prevent an endless while loop if there has been an unexpected error and the startNode is missing
     assert(start in cameFrom.values())
 
+    # keep finding the node that the last node descended from in the traversal, append to list
     prev = cameFrom[end]
     while prev != start:
         route.append(prev)
         prev = cameFrom[prev]
+    route.append(prev)
     
+    # reverse the list so it is in order [startNode, ..., endNode]
     return route[::-1]
 
 def aStar(graph,startNode,endNode,costMap,verbose=False):
+    """Performs the A* pathfinding algorithm on a custom graph
+
+    Args:
+        graph (graph): The custom graph structure (see graph.py)
+        startNode (node): The node to start at
+        endNode (node): The node to end pathfinding at
+        costMap (dict): A dictionary mapping the road type specified by the API of a certain node to the cost of travelling over it
+        verbose (bool, optional): Choose to display verbose output for debugging. Defaults to False.
+
+    Returns:
+        list [node]: The list of nodes on the route in order of start to finish
+    """
 
     if verbose:
         print("Starting with",startNode)
@@ -71,20 +87,16 @@ def aStar(graph,startNode,endNode,costMap,verbose=False):
             if verbose:
                 print("Neighbour:")
                 print("   This neighbour is",neighbour)
-
-            # if child is in the closedList
-                # continue
             
-            
-
             # child.g = currentNode.g + distance between child and current
             # child.h = distance from child to end
             # child.f = child.g + child.h
-            
             h = haversine(endNode.position,neighbour.position)
             g = gCosts[currentNode] + (haversine(currentNode.position,neighbour.position) * graph.edgeCost(costMap,currentNode.id,neighbour.id))
             f = g + h
 
+            # if child is in the closedList
+                # continue
             if neighbour in closedSet.keys():
                 if (closedSet[neighbour] < f):
                     if verbose:
